@@ -5,7 +5,7 @@ The simulator takes as input:
 - The BPMS name
 - The BPMS url
 - A config.txt file that contains information about the tenants, their ids and number of users within each one. 
-- The allowed number of tasks within a tenant (parameter of steadiness)
+- The allowed number of tasks within tenants (parameter of steadiness)
 
 the simulator contains one agent type which is the AgentUser.
 
