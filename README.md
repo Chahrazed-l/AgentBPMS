@@ -19,4 +19,4 @@ The behavior of the agent is simple:
  If the total number of the current tasks within a tenant is >> parameter of steadiness (allowed number of tasks per tenant).
  The agents will close quickly the extra tasks.
  
-If the total number of the current tasks within a tenant is <= parameter of steadiness: the agents will not do anything in term of task execution.  
+If the total number of the current tasks within a tenant is <= parameter of steadiness: the agents will not do anything in term of tasks execution.  
