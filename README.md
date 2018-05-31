@@ -26,9 +26,9 @@ the simulator contains two agent types which are as follows:
  
 - If the total number of the current tasks within a tenant is <= parameter of steadiness: the agents will not do anything in term of tasks execution.  
 
-# A docker image of the agent simulator is created: "The name of the image is: *bpmsagent"
+# A docker image of the agent simulator is created: "The name of the image is: bpmsagent"
  
- # For the execution of the docker image, you can use this command:
+# For the execution of the docker image, you can use this command:
  
 1- docker run -e BPMSNAME='Name of the BPMS' -e URL='url of the BPMS' -v file_path_to_config.txt:/tmp/config.txt -e CONFIGFILE='/tmp/config.txt' -it bpmsagent
 
