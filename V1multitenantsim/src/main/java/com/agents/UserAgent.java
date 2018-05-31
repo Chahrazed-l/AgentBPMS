@@ -32,7 +32,7 @@ public class UserAgent extends Agent {
 	private String password;
 	private String platform_URI;
 	private String tenantId;
-	private String containerName;
+	private String tenantName;
 	private Class<?> con;
 	private String token;
 	private String className;
@@ -56,37 +56,8 @@ public class UserAgent extends Agent {
 		tenantId = args[3].toString();
 		className = args[4].toString();
 		nbprocessActif = Long.parseLong(args[5].toString());
-		try {
-			con = Class.forName(className);
-			Object conn = con.newInstance();
-			Method getNameMethod = conn.getClass().getMethod("getConnectionManager");
-			PoolingHttpClientConnectionManager pool = (PoolingHttpClientConnectionManager) getNameMethod.invoke(conn);
-			Constructor<?> myConstructor = con.getConstructor(CloseableHttpClient.class, String.class);
-			conn1 = myConstructor.newInstance(HttpClients.custom().setConnectionManager(pool).build(), platform_URI);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		registerUserAgent();
-
+		tenantName = args[6].toString();
+		registerUserAgent(tenantName);
 		this.addBehaviour(new UserBehavior());
 	}
 
@@ -94,13 +65,46 @@ public class UserAgent extends Agent {
 	public class UserBehavior extends Behaviour {
 		int step = 1;
 		MessageTemplate mt;
+		int procexec = 0;
 
 		@Override
 		public void action() {
-
 			switch (step) {
-
 			case 1:
+				try {
+					con = Class.forName(className);
+					Object conn = con.newInstance();
+					Method getNameMethod = conn.getClass().getMethod("getConnectionManager");
+					PoolingHttpClientConnectionManager pool = (PoolingHttpClientConnectionManager) getNameMethod
+							.invoke(conn);
+					Constructor<?> myConstructor = con.getConstructor(CloseableHttpClient.class, String.class);
+					conn1 = myConstructor.newInstance(HttpClients.custom().setConnectionManager(pool).build(),
+							platform_URI);
+					step = 2;
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NoSuchMethodException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SecurityException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				break;
+			case 2:
 				// Connect to the portal
 				Class<?>[] paramTypes = { String.class, String.class, String.class };
 				try {
@@ -130,7 +134,7 @@ public class UserAgent extends Agent {
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
 					struct = (Struct) getNameMethod1.invoke(conn1, nbpage, nbproc, token, userId);
-				
+
 				} catch (NoSuchMethodException e3) {
 					// TODO Auto-generated catch block
 					e3.printStackTrace();
@@ -151,80 +155,15 @@ public class UserAgent extends Agent {
 				if (k > 0) {
 					Random r = new Random();
 					p = r.nextInt(k);
-					
-					String assignid = null;
-					if (struct.getProccactif() > nbprocessActif + 1) {
-						try {
-							Class<?>[] paramTypess1 = { long.class, String.class };
-							getNameMethod1 = conn1.getClass().getMethod("getTaskInfo", paramTypess1);
-							assignid = (String) getNameMethod1.invoke(conn1, struct.getPendingList().get(p), token);
-						} catch (NoSuchMethodException e2) {
-							// TODO Auto-generated catch block
-							e2.printStackTrace();
-						} catch (SecurityException e2) {
-							// TODO Auto-generated catch block
-							e2.printStackTrace();
-						} catch (IllegalAccessException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IllegalArgumentException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						if (assignid.equals("")) {
-							try {
-								Class<?>[] paramTypess = { long.class, long.class, String.class };
-								getNameMethod1 = conn1.getClass().getMethod("autoAssign", paramTypess);
-								getNameMethod1.invoke(conn1, struct.getPendingList().get(p), userId, token);
-								
-							} catch (IllegalAccessException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							} catch (IllegalArgumentException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							} catch (InvocationTargetException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							} catch (NoSuchMethodException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (SecurityException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							try {
-								Class<?>[] paramTyp = { long.class, long.class, String.class };
-								getNameMethod1 = conn1.getClass().getMethod("executeTask", paramTyp);
-								getNameMethod1.invoke(conn1, struct.getPendingList().get(p), userId, token);
-							} catch (NoSuchMethodException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (SecurityException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (IllegalAccessException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (IllegalArgumentException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (InvocationTargetException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
 
-						}
-					} else if (struct.getProccactif() <= nbprocessActif+1 && struct.getProccactif() > nbprocessActif) {
-						
+					String assignid = null;
+					if (struct.getProccactif() > nbprocessActif) {
+						procexec = procexec + 1;
 						try {
 							Class<?>[] paramTypess1 = { long.class, String.class };
 							getNameMethod1 = conn1.getClass().getMethod("getTaskInfo", paramTypess1);
 							assignid = (String) getNameMethod1.invoke(conn1, struct.getPendingList().get(p), token);
-							
+
 						} catch (NoSuchMethodException e2) {
 							// TODO Auto-generated catch block
 							e2.printStackTrace();
@@ -246,7 +185,7 @@ public class UserAgent extends Agent {
 								Class<?>[] paramTypess = { long.class, long.class, String.class };
 								getNameMethod1 = conn1.getClass().getMethod("autoAssign", paramTypess);
 								getNameMethod1.invoke(conn1, struct.getPendingList().get(p), userId, token);
-								
+
 							} catch (IllegalAccessException e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
@@ -291,10 +230,47 @@ public class UserAgent extends Agent {
 							}
 
 						}
+
 					}
-					step = 1;
-					break;
+					if (procexec> 0 && (procexec % 10)==0) {
+						try {
+							System.out.println("The user Agent " + myAgent.getLocalName() + " within the tenant "
+									+ myAgent.getContainerController().getContainerName()+ " achieved "+procexec);
+						} catch (ControllerException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					step = 3;
 				}
+				break;
+
+			case 3:
+				mt = MessageTemplate.MatchAll();
+				ACLMessage mg = myAgent.receive(mt);
+				if (mg != null) {
+					if (mg.getPerformative() == ACLMessage.REQUEST) {
+						System.out.println("A message telling me to stop is receveid: " + myAgent.getLocalName());
+						step = 4;
+					}
+				} else {
+					step = 2;
+				}
+				break;
+			case 4:
+				mt = MessageTemplate.MatchAll();
+				ACLMessage mg1 = myAgent.receive(mt);
+				if (mg1 != null) {
+					if (mg1.getPerformative() == ACLMessage.INFORM) {
+						step = 1;
+						platform_URI=mg1.getContent();
+						System.out.println("A message telling me to start again is receveid: " + myAgent.getLocalName()
+								+ " change to this BPMS URL " +platform_URI);
+					}
+				} else {
+					block();
+				}
+				break;
 			}
 		}
 
@@ -306,12 +282,12 @@ public class UserAgent extends Agent {
 	}
 
 	// Register the Technical Agent within the DF: Directory Facilitator
-	private void registerUserAgent() {
+	private void registerUserAgent(String tenantName) {
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
 		sd.setName(this.getLocalName());
-		sd.setType("UserAgent");
+		sd.setType("User" + tenantName);
 		dfd.addServices(sd);
 
 		try {
@@ -319,29 +295,6 @@ public class UserAgent extends Agent {
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
-
-	}
-
-	private AID synchroId(String containerName) {
-		AID agentsynchro = null;
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-		sd.setType("synchro" + containerName);
-		template.addServices(sd);
-		boolean found = false;
-		try {
-			do {
-
-				DFAgentDescription[] resultList = DFService.search(this, template);
-				if (resultList != null && resultList.length > 0) {
-					agentsynchro = resultList[0].getName();
-					found = true;
-				}
-			} while (!found);
-		} catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-		return agentsynchro;
 	}
 
 }
