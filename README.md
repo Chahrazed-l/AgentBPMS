@@ -35,8 +35,11 @@ the simulator contains two agent types which are as follows:
 # To stop and start the agents during migration the following command line can be used:
 
 1- docker exec -it <Id of the running container>  /bin/bash
+  
 2- cd /Appagent
+
 3- chmod +x dummyscript.sh   
+
 4- To stop the agents users the script takes as parameters: a message "stop" and the name of the tenant for example
   
   ./dummyscript.sh stop T1 (stop Agents within T1) 
