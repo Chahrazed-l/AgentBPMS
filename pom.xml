@@ -44,6 +44,26 @@
 					</archive>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.10</version>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<useBaseVersion>false</useBaseVersion>
+					<overWriteReleases>false</overWriteReleases>
+					<overWriteSnapshots>true</overWriteSnapshots>
+					<includeScope>runtime</includeScope>
+					<outputDirectory>${project.build.directory}/lib</outputDirectory>
+					<stripVersion>true</stripVersion>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
