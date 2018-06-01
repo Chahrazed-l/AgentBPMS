@@ -46,7 +46,7 @@ the simulator contains two agent types which are as follows:
   
  5- To start the agents users the script takes as parameters: a message "start", the name of the tenant and the url of the destination platform.
  
- ./dummyscript.sh start T1 <URL> -------------> (start Agents within T1 to reconnect to the new URL).
+ ./dummyscript.sh start T1 URL   -------------> (start Agents within T1 to reconnect to the new URL).
   
 
 
