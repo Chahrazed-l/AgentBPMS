@@ -43,14 +43,26 @@ T1;2;user1;user1;5;1000
 - The tenant name is written using this regular expression ([A-Z][0-9]{1,4}). For example "T1" to say tenant1. It does not have any relation with the BPMS tenant name, it is named that way to facilitate the management of containers and the organisation of the agents within Jade platform. 
 
 - for the Number of  active Tasks: 
+```
+If the total number of the current tasks within a tenant is >> parameter of steadiness (allowed number of   active tasks per tenant). The agents will close quickly the extra tasks.
+```
+ ```
+If the total number of the current tasks within a tenant is <= parameter of steadiness: the agents will not do anything in term of tasks execution. 
+```
+# Getting Started  
 
-                 * If the total number of the current tasks within a tenant is >> parameter of steadiness (allowed number of   active tasks per tenant). The agents will close quickly the extra tasks.
- 
-                 * If the total number of the current tasks within a tenant is <= parameter of steadiness: the agents will not do anything in term of tasks execution.  
+The following instructions will help you to run the project as well as create a doker image for it:
 
-# A docker image of the agent simulator is created: "The name of the image is: bpmsagent"
+the project is built using maven
+
+```
+mvn clean install
+```
+
+
+ A docker image of the agent simulator is created: "The name of the image is: bpmsagent"
  
-# For the execution of the docker image, you can use this command:
+ For the execution of the docker image, you can use this command:
  
 1- docker run -e BPMSNAME='Name of the BPMS' -e URL='url of the BPMS' -v file_path_to_config.txt:/tmp/config.txt -e CONFIGFILE='/tmp/config.txt' -it bpmsagent
 
