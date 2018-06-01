@@ -1,14 +1,28 @@
-# AgentBPMS
 
-the simulator contains two agent types which are as follows:
-- The AgentUser: The behavior of the agent is simple: 
+# About AgentBPMS project
 
-  - connect to the BPMS platform
-  - retrieve tasks(per page) as well as the total number of tasks within the tenant.
-  - Auto assign a task for himself 
-  - Execute the task. 
+The main idea of this project is to imitate the behaviors of human resource involved in the execution of business processes.
+To do so, we used the agent technology to model and simulate the resource behaviors. 
+In its current version the project supports the multi-tenant bonita platform. 
+Indeed each tenant involves many users and each user represents an agent. 
+The context of use: provide an experimental environment close to the reality in terms of user behaviors in order to evaluate some migration stragies of BMPS tenants from an infrastructure to another.
+
+########The Agent-based simulator
+
+the implimented simulator contains two agent types which are as follows:
+
+**The AgentUser**: 
+
+This Agent class represents a simple behavior of a human resource involved in the execution of a process: 
+
+  * connect to the BPMS platform
+  * retrieve tasks(per page) as well as the total number of tasks within the tenant.
+  * Auto assign a task for himself 
+  * Execute the task. 
   
--The dummy Agent: This agent is used to stop/restart AgentUser during the migration Process.
+**The dummy Agent**: 
+
+This agent is used to control the users within a tenant. It can stop and restart agents respectively before and after the migration of a tenant.
 
 # The simulator takes as input:
 
