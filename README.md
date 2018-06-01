@@ -12,7 +12,7 @@ The context of use: provide an experimental environment close to the reality in 
 
 the implimented simulator contains two agent types which are as follows:
 
-**The AgentUser**: 
+**1.The AgentUser**: 
 
 This Agent class represents a simple behavior of a human resource involved in the execution of a process: 
 
@@ -21,25 +21,32 @@ This Agent class represents a simple behavior of a human resource involved in th
   * Auto assign a task for himself 
   * Execute the task. 
   
-**The dummy Agent**: 
+**2.The dummy Agent**: 
 
 This agent is used to control the users within a tenant. It can stop and restart agents respectively before and after the migration of a tenant.
 
-# The simulator takes as input:
+#### Simulator Inputs:
 
-- The BPMS name
-- The BPMS url
-- A config.txt. This file has the following format: The name of the tenant; The tenant id; userName; password; Number of agents per user; Number of  active Tasks. 
+The simulator takes as input: 
 
-     *for the tenant name: 
-     
-     -it is written this way using this regular expression ([A-Z][0-9]{1,4}). For example "T1" to say tenant1. It does not have any relation with the BPMS tenant name, it is named that way to facilitate the management of containers and the organisation of the agents within Jade platform. 
+* The BPMS name
+* The BPMS url
+* A config.txt: This file has the following format: 
+'''
+The name of the tenant; The tenant id; userName; password; Number of agents per user; Number of  active Tasks 
+'''
+For example:
 
-     *for the Number of  active Tasks: 
+'''
+T1;2;user1;user1;5;1000
+'''
+- The tenant name is written using this regular expression ([A-Z][0-9]{1,4}). For example "T1" to say tenant1. It does not have any relation with the BPMS tenant name, it is named that way to facilitate the management of containers and the organisation of the agents within Jade platform. 
 
--If the total number of the current tasks within a tenant is >> parameter of steadiness (allowed number of active tasks per tenant). The agents will close quickly the extra tasks.
+- for the Number of  active Tasks: 
+
+                 * If the total number of the current tasks within a tenant is >> parameter of steadiness (allowed number of   active tasks per tenant). The agents will close quickly the extra tasks.
  
-- If the total number of the current tasks within a tenant is <= parameter of steadiness: the agents will not do anything in term of tasks execution.  
+                 * If the total number of the current tasks within a tenant is <= parameter of steadiness: the agents will not do anything in term of tasks execution.  
 
 # A docker image of the agent simulator is created: "The name of the image is: bpmsagent"
  
