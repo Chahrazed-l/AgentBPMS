@@ -32,14 +32,14 @@ The simulator takes as input:
 * The BPMS name
 * The BPMS url
 * A config.txt: This file has the following format: 
-'''
+```
 The name of the tenant; The tenant id; userName; password; Number of agents per user; Number of  active Tasks 
-'''
+```
 For example:
 
-'''
+```
 T1;2;user1;user1;5;1000
-'''
+```
 - The tenant name is written using this regular expression ([A-Z][0-9]{1,4}). For example "T1" to say tenant1. It does not have any relation with the BPMS tenant name, it is named that way to facilitate the management of containers and the organisation of the agents within Jade platform. 
 
 - for the Number of  active Tasks: 
