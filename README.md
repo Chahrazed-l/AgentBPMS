@@ -1,13 +1,14 @@
 
 # About AgentBPMS project
 
-The main idea of this project is to imitate the behaviors of human resource involved in the execution of business processes.
+The main idea of this project is to imitate the behaviors of human resources involved in the execution of business processes.
 To do so, we used the agent technology to model and simulate the resource behaviors. 
 In its current version the project supports the multi-tenant bonita platform. 
 Indeed each tenant involves many users and each user represents an agent. 
+
 The context of use: provide an experimental environment close to the reality in terms of user behaviors in order to evaluate some migration stragies of BMPS tenants from an infrastructure to another.
 
-########The Agent-based simulator
+#### The Agent-based simulator 
 
 the implimented simulator contains two agent types which are as follows:
 
