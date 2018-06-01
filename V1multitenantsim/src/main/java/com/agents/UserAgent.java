@@ -37,7 +37,7 @@ public class UserAgent extends Agent {
 	private String token;
 	private String className;
 	private int nbpage = 0;
-	private int nbproc = 10;
+	private int nbproc = 100;
 	Object conn1;
 	private long userId;
 	private int k;
@@ -130,6 +130,10 @@ public class UserAgent extends Agent {
 					e.printStackTrace();
 				}
 				Struct struct = new Struct(listofPendingTasks, nbproca);
+				int i=1000;
+				Random r1 = new Random();
+				long c = r1.nextInt(i);
+				block(c);
 				try {
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
@@ -203,6 +207,7 @@ public class UserAgent extends Agent {
 								e.printStackTrace();
 							}
 							try {
+								
 								Thread.sleep(1000);
 							} catch (InterruptedException e1) {
 								// TODO Auto-generated catch block
