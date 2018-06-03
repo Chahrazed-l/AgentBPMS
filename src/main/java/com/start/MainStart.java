@@ -24,6 +24,7 @@ public class MainStart {
 	private static HashMap<String, ContainerController> containerList = new HashMap<String, ContainerController>();
 	// private static List<AgentController> agentList;// agents's ref
 	private static Runtime rt;
+	public static Object lock = new Object();
 	private static ArrayList<String> tenantList = new ArrayList<String>();
 	private static ArrayList<ContainerController> containers = new ArrayList<ContainerController>();
 	private static Struct tenantcontainer = new Struct(tenantList, containers);
@@ -46,7 +47,7 @@ public class MainStart {
 		Profile pMain = new ProfileImpl(null, 1090, null);
 		System.out.println("Launching a main-container..." + pMain);
 		AgentContainer mainContainerRef = rt.createMainContainer(pMain); // DF and AMS are included
-		//createMonitoringAgents(mainContainerRef);
+		createMonitoringAgents(mainContainerRef);
 		System.out.println("Plaform ok");
 		return rt;
 	}
@@ -122,9 +123,6 @@ public class MainStart {
 				Profile profile = new ProfileImpl();
 				profile.setParameter(Profile.CONTAINER_NAME, tenantName);
 				profile.setParameter(Profile.MAIN_HOST, "localhost");
-				// create a non-main agent container
-				System.out.println(
-						"Launchig the user Agents of Tenant " + tenantName + " number of users is " + userNumber);
 				ContainerController container = null;
 				container = runtime.createAgentContainer(profile);
 				tenantcontainer.getTenantList().add(tenantName);
@@ -137,7 +135,8 @@ public class MainStart {
 								new Object[] { uRi, userName, password, tenantId, "com.bpms." + className,
 										nbprocessActif, tenantName });// arguments
 						ag.start();
-
+						System.out.println(
+								"The agent " + userName + i + tenantName + " is created succefully within tenant " + tenantName);
 					} catch (StaleProxyException e) {
 						e.printStackTrace();
 					}
@@ -147,14 +146,15 @@ public class MainStart {
 			} else {
 				// Add the agents to the existing container having the name of the Tenant
 				ContainerController containerController = container(tenantcontainer, tenantName);
-				System.out.println(
-						"Launchig the user Agents of Tenant " + tenantName + " number of users is " + userNumber);
+		
 				for (int i = 1; i <= userNumber; i++) {
 					try {
 						AgentController ag = containerController.createNewAgent(userName + i + tenantName,
 								"com.agents.UserAgent", new Object[] { uRi, userName, password, tenantId,
 										"com.bpms." + className, nbprocessActif, tenantName });// arguments
 						ag.start();
+						System.out.println(
+								"The agent " + userName + i + tenantName + " is created succefully within tenant" + tenantName);
 
 					} catch (StaleProxyException e) {
 						e.printStackTrace();
