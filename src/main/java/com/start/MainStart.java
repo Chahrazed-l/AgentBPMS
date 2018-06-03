@@ -47,7 +47,7 @@ public class MainStart {
 		Profile pMain = new ProfileImpl(null, 1090, null);
 		System.out.println("Launching a main-container..." + pMain);
 		AgentContainer mainContainerRef = rt.createMainContainer(pMain); // DF and AMS are included
-		createMonitoringAgents(mainContainerRef);
+		//createMonitoringAgents(mainContainerRef);
 		System.out.println("Plaform ok");
 		return rt;
 	}
