@@ -227,7 +227,7 @@ public class UserAgent extends Agent {
 	//
 	public void execBehav(Method method, Object obj, Struct struct, long nb) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
-		synchronized (lock) {
+		synchronized (tenantName) {
 			//retrieve Task 
 			Class<?>[] paramType = { int.class, int.class, String.class, long.class};
 			getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
