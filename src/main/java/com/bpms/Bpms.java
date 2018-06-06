@@ -18,7 +18,7 @@ public abstract class Bpms {
 	//logout the platform
 	public abstract void dologout(String token);
 	//Create a closable Http Client
-	public abstract String getTaskInfo(long activityId,String token);
+	public abstract boolean getTaskInfo(long activityId,String token);
 	public abstract PoolingHttpClientConnectionManager getConnectionManager() ;
 	// Execute a Post Request
 	public abstract HttpResponse executePostRequest(String apiUri, String payloadAsString, String tokenCSRF);

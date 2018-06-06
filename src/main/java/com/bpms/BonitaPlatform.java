@@ -1,9 +1,12 @@
 package com.bpms;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -11,6 +14,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -36,7 +40,7 @@ public class BonitaPlatform extends Bpms {
 	protected CloseableHttpClient httpClient;
 	protected HttpContext httpContext;
 	protected String bonitaURI;
-	protected String urlTaskRetrive = "/API/bpm/humanTask?p=0&c=10&f=state%3dready&f=user_id%3d";
+	protected String urlTaskRetrive = "/API/bpm/humanTask?p=0&c=100&f=state%3dready&f=user_id%3d";
 	protected String urlTask = "/API/bpm/humanTask/";
 	protected String urlstateTask = "/API/bpm/activity/";
 
@@ -62,17 +66,8 @@ public class BonitaPlatform extends Bpms {
 			urlParameters.add(new BasicNameValuePair("password", password));
 			urlParameters.add(new BasicNameValuePair("tenant", tenantId));
 			urlParameters.add(new BasicNameValuePair("redirect", "false"));
-
 			UrlEncodedFormEntity entity = new UrlEncodedFormEntity(urlParameters, "utf-8");
 			executePostRequest(loginUrl, entity);
-
-			/*
-			 * for (Cookie cookie : cookieStore.getCookies()) {
-			 * System.out.println("Recieved Cookie: " + cookie.getName() + ":" +
-			 * cookie.getValue()); }
-			 */
-			// System.out.println("The token CSRF: " + getCookieValue(cookieStore,
-			// "X-Bonita-API-Token"));
 			return getCookieValue(cookieStore, "X-Bonita-API-Token");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -83,11 +78,13 @@ public class BonitaPlatform extends Bpms {
 
 	@Override
 	public Struct retreiveTask(int numberPag, int numberproc, String token, long userId) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stu
 		ArrayList<Long> listOfPendingTasks = new ArrayList<Long>();
-		long nbprocactif= 0;
-		HttpResponse response = executeGetRequest(urlTaskRetrive + userId, token);
-		ensureStatusOk(response);
+		long nbprocactif = 0;
+		Struct struct = new Struct(listOfPendingTasks, nbprocactif);
+		HttpResponse response = executeGetRequest(
+				"/API/bpm/humanTask?p=0&c=" + numberproc + "&f=state%3dready&f=user_id%3d" + userId, token);
+		// ensureStatusOk(response,"retreiveTask" );
 		String Data;
 		try {
 			Data = EntityUtils.toString(response.getEntity());
@@ -100,7 +97,9 @@ public class BonitaPlatform extends Bpms {
 				String id = (String) json.get("id");
 				long id1 = Long.valueOf(Long.parseLong(id, 10));
 				// System.out.println("The id of the assigned Task is " + id1);
-				listOfPendingTasks.add(id1);
+				if (!getTaskInfo(id1, token)) {
+					listOfPendingTasks.add(id1);
+				}
 				// System.out.println("The id of the assigned Task is " + id);
 			}
 		} catch (ParseException e) {
@@ -113,10 +112,10 @@ public class BonitaPlatform extends Bpms {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		nbprocactif=getInstanceLength(response);
-				
-		Struct struct = new Struct(listOfPendingTasks, nbprocactif);
+		nbprocactif = getInstanceLength(response);
+		struct = new Struct(listOfPendingTasks, nbprocactif);
 		return struct;
+
 	}
 
 	public static long getInstanceLength(HttpResponse response) {
@@ -146,14 +145,14 @@ public class BonitaPlatform extends Bpms {
 		// TODO Auto-generated method stub
 		String payloadAsString = "{\"assigned_id\":\"" + userId + "\"}";
 		HttpResponse response = executePutRequest(urlTask + taskId, payloadAsString, token);
-		ensureStatusOk(response);
+		// ensureStatusOk(response, "autoAssign");
 	}
 
 	@Override
 	public void executeTask(long activityId, long userId, String token) {
 		String payloadAsString = "{\"state\":\"completed\"}";
 		HttpResponse response = executePutRequest(urlstateTask + activityId, payloadAsString, token);
-		ensureStatusOk(response);
+		// ensureStatusOk(response, "executeTask");
 
 	}
 
@@ -174,10 +173,9 @@ public class BonitaPlatform extends Bpms {
 	public int ensureStatusOk(HttpResponse response) {
 		// TODO Auto-generated method stub
 		if (response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
-			throw new RuntimeException("Failed: Http error code : " + response.getStatusLine().getStatusCode() + " : "
-					+ response.getStatusLine().getReasonPhrase());
+			System.out.println("Failed: Http error code : " + response.getStatusLine().getStatusCode() + " : "
+					+ response.getStatusLine().getReasonPhrase() + " in the method ");
 		}
-		// System.out.println("Success ! " + response.getStatusLine().getStatusCode());
 		return response.getStatusLine().getStatusCode();
 	}
 
@@ -188,6 +186,7 @@ public class BonitaPlatform extends Bpms {
 			HttpGet getrequest = new HttpGet(bonitaURI + apiURI);
 			getrequest.addHeader("X-Bonita-API-Token", tokencsrf);
 			HttpResponse response = httpClient.execute(getrequest, httpContext);
+			// ensureStatusOk(response, "executeGetRequest");
 			return response;
 
 		} catch (Exception e) {
@@ -202,21 +201,11 @@ public class BonitaPlatform extends Bpms {
 		// TODO Auto-generated method stub
 		long id1 = 0;
 		HttpResponse response = executeGetRequest(userUrl + userName, tokencsrf);
-		// System.out.println("Status de la reponse " +
-		// response.getStatusLine().getStatusCode());
 		String actorJson;
+		JSONArray array = null;
 		try {
 			actorJson = EntityUtils.toString(response.getEntity());
-
-			JSONArray array = (JSONArray) new JSONParser().parse(actorJson);
-			// System.out.println("The size of the array !!"+array.size() );
-			for (int i = 0; i < array.size(); i++) {
-				JSONObject json = null;
-				json = (JSONObject) array.get(i);
-				String id = (String) json.get("id");
-				id1 = Long.valueOf(Long.parseLong(id, 10));
-				// System.out.println("The id of client is " + id1);
-			}
+			array = (JSONArray) new JSONParser().parse(actorJson);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -227,31 +216,43 @@ public class BonitaPlatform extends Bpms {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// System.out.print(actorJson);
+		// System.out.println("The size of the array !!"+array.size() );
+		for (int i = 0; i < array.size(); i++) {
+			JSONObject json = null;
+			json = (JSONObject) array.get(i);
+			String id = (String) json.get("id");
+			id1 = Long.valueOf(Long.parseLong(id, 10));
+		}
 		return id1;
-
 	}
 
 	@Override
 	public HttpResponse executePutRequest(String apiURI, String payloadString, String tokenCSRF) {
 		// TODO Auto-generated method stub
+		HttpPut putRequest = new HttpPut(bonitaURI + apiURI);
+		putRequest.addHeader("Accept", "application/json");
+		putRequest.setHeader("Content-Type", "application/json");
+		putRequest.addHeader("X-Bonita-API-Token", tokenCSRF);
+		StringEntity input;
+		HttpResponse response = null;
 		try {
-			HttpPut putRequest = new HttpPut(bonitaURI + apiURI);
-
-			putRequest.addHeader("Accept", "application/json");
-			putRequest.setHeader("Content-Type", "application/json");
-			putRequest.addHeader("X-Bonita-API-Token", tokenCSRF);
-
-			StringEntity input = new StringEntity(payloadString);
+			input = new StringEntity(payloadString);
 			putRequest.setEntity(input);
-			// System.out.println(bonitaURI+apiURI);
-			HttpResponse response = httpClient.execute(putRequest, httpContext);
-			return response;
-		} catch (Exception e) {
-			// TODO: handle exception
+			response = httpClient.execute(putRequest, httpContext);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+			System.out.println("error");
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new RuntimeException(e);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		// ensureStatusOk(response,"executePutRequest");
+		return response;
+
 	}
 
 	@Override
@@ -273,6 +274,7 @@ public class BonitaPlatform extends Bpms {
 			postRequest.setHeader("Content-Type", "application/json");
 			postRequest.addHeader("X-Bonita-API-Token", tokenCSRF);
 			HttpResponse response = httpClient.execute(postRequest, httpContext);
+			// ensureStatusOk(response, "executePostRequest");
 			return response;
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -305,26 +307,28 @@ public class BonitaPlatform extends Bpms {
 		{
 			// TODO Auto-generated method stub
 			PoolingHttpClientConnectionManager conMan = new PoolingHttpClientConnectionManager();
-			conMan.setMaxTotal(200);
-			conMan.setDefaultMaxPerRoute(200);
+			conMan.setMaxTotal(1000);
+			conMan.setDefaultMaxPerRoute(1000);
 			return conMan;
 		}
 	}
 
 	@Override
-	public String getTaskInfo(long activityId, String token) {
-		// TODO Auto-generated method stub
+	public boolean getTaskInfo(long activityId, String token) {
+		// TODO Auto-generated method stubString assignid = "";
+		String assignid = "";
+		String actorJson = null;
+		boolean assign = false;
 		HttpResponse response = executeGetRequest("/API/bpm/userTask/" + activityId, token);
-		 String actorJson=null;
-		 String assignid ="";
+		if (response.getStatusLine().getStatusCode() == 200) {
 			try {
 				actorJson = EntityUtils.toString(response.getEntity());
 				JSONParser parser = new JSONParser();
 				Object jsonObj = parser.parse(actorJson);
 				JSONObject jsonObject = (JSONObject) jsonObj;
-				assignid= (String) jsonObject.get("assigned_id");
-				assignid=assignid.trim();
-				//id1= Long.parseLong(assignid);
+				assignid = (String) jsonObject.get("assigned_id");
+				assignid = assignid.trim();
+				// id1= Long.parseLong(assignid);
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -335,10 +339,13 @@ public class BonitaPlatform extends Bpms {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			return assignid;
+		}
+		if (assignid.equals("")) {
+			assign = false;
+		} else {
+			assign = true;
+		}
+		return assign;
 
-	
-
-}
+	}
 }

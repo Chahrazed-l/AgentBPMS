@@ -37,6 +37,7 @@ public class DummyAg extends Agent {
 							msg.addReceiver(usersID.get(i));
 						}
 						send(msg);
+						System.out.println("Sending a message to the agents to Stop");
 					} else {
 						System.out.println("The correct message name is : stop not what u have written");
 					}

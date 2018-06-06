@@ -132,8 +132,7 @@ public class MainStart {
 					try {
 
 						AgentController ag = container.createNewAgent(userName + i + tenantName, "com.agents.UserAgent",
-								new Object[] { uRi, userName, password, tenantId, "com.bpms." + className,
-										nbprocessActif, tenantName });// arguments
+								new Object[] { uRi, userName, password, tenantId, "com.bpms." + className, tenantName });// arguments
 						ag.start();
 						System.out.println(
 								"The agent " + userName + i + tenantName + " is created succefully within tenant " + tenantName);
@@ -141,6 +140,16 @@ public class MainStart {
 						e.printStackTrace();
 					}
 
+				}
+				try {
+
+					AgentController ag = container.createNewAgent(userName + "synchro" + tenantName, "com.agents.Synchronizer",
+							new Object[] { uRi, userName, password, tenantId, "com.bpms." + className,nbprocessActif, tenantName });// arguments
+					ag.start();
+					System.out.println(
+							"The agent " + userName + "synchro" + tenantName + " is created succefully within tenant " + tenantName);
+				} catch (StaleProxyException e) {
+					e.printStackTrace();
 				}
 
 			} else {
@@ -151,7 +160,7 @@ public class MainStart {
 					try {
 						AgentController ag = containerController.createNewAgent(userName + i + tenantName,
 								"com.agents.UserAgent", new Object[] { uRi, userName, password, tenantId,
-										"com.bpms." + className, nbprocessActif, tenantName });// arguments
+										"com.bpms." + className, tenantName });// arguments
 						ag.start();
 						System.out.println(
 								"The agent " + userName + i + tenantName + " is created succefully within tenant" + tenantName);
@@ -160,6 +169,16 @@ public class MainStart {
 						e.printStackTrace();
 					}
 
+				}
+				try {
+
+					AgentController ag = containerController.createNewAgent(userName + "synchro" + tenantName, "com.agents.Synchronizer",
+							new Object[] { uRi, userName, password, tenantId, "com.bpms." + className,nbprocessActif, tenantName });// arguments
+					ag.start();
+					System.out.println(
+							"The agent " + userName + "synchro" + tenantName + " is created succefully within tenant " + tenantName);
+				} catch (StaleProxyException e) {
+					e.printStackTrace();
 				}
 
 			}

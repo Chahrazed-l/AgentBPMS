@@ -1,21 +1,13 @@
 package com.agents;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.acl.Acl;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-import com.bpms.Struct;
-
-import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
@@ -37,16 +29,11 @@ public class UserAgent extends Agent {
 	private Class<?> con;
 	private String token;
 	private String className;
-	private int nbpage = 0;
-	private int nbproc = 100;
 	Object conn1;
 	private long userId;
-	private ArrayList<Long> listofPendingTasks;
-	private long nbproca;
+	private int nbprocexec=0;
+
 	private Method getNameMethod1;
-	private long nbprocessActif;
-	private String lock="lock";
-	private int procexec = 0;
 
 	// Initilize the agent
 	public void setup() {
@@ -56,8 +43,7 @@ public class UserAgent extends Agent {
 		password = args[2].toString();
 		tenantId = args[3].toString();
 		className = args[4].toString();
-		nbprocessActif = Long.parseLong(args[5].toString());
-		tenantName = args[6].toString();
+		tenantName = args[5].toString();
 		registerUserAgent(tenantName);
 		this.addBehaviour(new UserBehavior());
 	}
@@ -81,6 +67,7 @@ public class UserAgent extends Agent {
 					Constructor<?> myConstructor = con.getConstructor(CloseableHttpClient.class, String.class);
 					conn1 = myConstructor.newInstance(HttpClients.custom().setConnectionManager(pool).build(),
 							platform_URI);
+					
 					step = 2;
 
 				} catch (ClassNotFoundException e) {
@@ -105,10 +92,6 @@ public class UserAgent extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				break;
-
-			case 2:
-				// Connect to the portal
 				Class<?>[] paramTypes = { String.class, String.class, String.class };
 				try {
 					getNameMethod1 = conn1.getClass().getMethod("doLogin", paramTypes);
@@ -132,60 +115,81 @@ public class UserAgent extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				Struct struct = new Struct(listofPendingTasks, nbproca);
-				//synchronized Method
-				try {
-					execBehav(getNameMethod1, conn1, struct, nbprocessActif);
-				} catch (NoSuchMethodException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (SecurityException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IllegalAccessException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IllegalArgumentException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (InvocationTargetException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-		
-				if (procexec > 0 && (procexec % 10) == 0) {
-					try {
-						System.out.println("The user Agent " + myAgent.getLocalName() + " within the tenant "
-								+ myAgent.getContainerController().getContainerName() + " achieved " + procexec);
-					} catch (ControllerException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+				break;
+
+			case 2:
+				ACLMessage mgk = myAgent.receive(mt);
+				if (mgk != null) {
+					if (mgk.getPerformative() == ACLMessage.REQUEST_WHEN) {
+						try {
+							// Auto Assign
+							long taskid = (Long) mgk.getContentObject();
+							Class<?>[] paramTypes1 = { long.class, String.class };
+							getNameMethod1 = conn1.getClass().getMethod("getTaskInfo", paramTypes1);
+							if((Boolean) getNameMethod1.invoke(conn1, taskid, token)==false) {
+								Class<?>[] paramTypess = { long.class, long.class, String.class };
+								getNameMethod1 = conn1.getClass().getMethod("autoAssign", paramTypess);
+								getNameMethod1.invoke(conn1, taskid, userId, token);
+								// Execute
+								Class<?>[] paramTyp = { long.class, long.class, String.class };
+								getNameMethod1 = conn1.getClass().getMethod("executeTask", paramTyp);
+								getNameMethod1.invoke(conn1, taskid, userId, token);
+								nbprocexec=nbprocexec+1;
+							}
+							else {
+								System.out.println("The task Id is taken "+taskid);
+							}
+						} catch (UnreadableException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (NoSuchMethodException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (SecurityException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalArgumentException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InvocationTargetException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						if (nbprocexec> 0 && (nbprocexec % 50) == 0) {
+							
+								try {
+									System.out.println("The user Agent " + myAgent.getLocalName() + " within the tenant "
+											+ myAgent.getContainerController().getContainerName() + " achieved " + nbprocexec);
+								} catch (ControllerException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+						}
+						step=2;
+					} else 
+					if (mgk.getPerformative() == ACLMessage.REQUEST) {
+						
+						System.out.println("A message telling me to stop is received: " + myAgent.getLocalName());
+						step = 3;
+
 					}
 				}
-
-				step = 3;
+				else {
+					block();
+				}
 				break;
 
 			case 3:
-				mt = MessageTemplate.MatchAll();
-				ACLMessage mg = myAgent.receive(mt);
-				if (mg != null) {
-					if (mg.getPerformative() == ACLMessage.REQUEST) {
-						System.out.println("A message telling me to stop is receveid: " + myAgent.getLocalName());
-						step = 4;
-					}
-				} else {
-					step = 2;
-				}
-				break;
-			case 4:
 				mt = MessageTemplate.MatchAll();
 				ACLMessage mg11 = myAgent.receive(mt);
 				if (mg11 != null) {
 					if (mg11.getPerformative() == ACLMessage.INFORM) {
 						step = 1;
 						platform_URI = mg11.getContent();
-						System.out.println("A message telling me to start again is receveid: " + myAgent.getLocalName()
+						System.out.println("A message telling me to start again is received: " + myAgent.getLocalName()
 								+ " change to this BPMS URL " + platform_URI);
 					}
 				} else {
@@ -202,55 +206,6 @@ public class UserAgent extends Agent {
 
 	}
 
-	private AID userag(String tenantName) {
-		AID useragent = null;
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-		sd.setType("User" + tenantName + "M");
-		template.addServices(sd);
-		boolean found = false;
-		try {
-			do {
-
-				DFAgentDescription[] resultList = DFService.search(this, template);
-				if (resultList != null && resultList.length > 0) {
-					useragent = resultList[0].getName();
-					found = true;
-				} // System.out.println("not found yet");
-			} while (!found);
-		} catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-		// System.out.println("L'id de l'agent synchro est " + agentsynchro);
-		return useragent;
-	}
-	//
-	public void execBehav(Method method, Object obj, Struct struct, long nb) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		
-		synchronized (tenantName) {
-			//retrieve Task 
-			Class<?>[] paramType = { int.class, int.class, String.class, long.class};
-			getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
-			struct = (Struct) getNameMethod1.invoke(conn1, nbpage, nbproc, token, userId);
-			int k =struct.getPendingList().size();
-			if(struct.getProccactif()>nb) {
-			Random r = new Random();
-			int p = r.nextInt(k);
-			//Assign task
-			Class<?>[] paramTypess = { long.class, long.class, String.class };
-			getNameMethod1 = conn1.getClass().getMethod("autoAssign", paramTypess);
-			getNameMethod1.invoke(conn1, struct.getPendingList().get(p), userId, token);
-			//Execute Task
-			Class<?>[] paramTyp = { long.class, long.class, String.class };
-			getNameMethod1 = conn1.getClass().getMethod("executeTask", paramTyp);
-			getNameMethod1.invoke(conn1, struct.getPendingList().get(p), userId, token);
-			procexec=procexec+1;
-			}
-			else {
-				System.out.println("Reached the threshold "+nb);
-			}
-		}
-	}
 	// Register the Technical Agent within the DF: Directory Facilitator
 	private void registerUserAgent(String tenantName) {
 		DFAgentDescription dfd = new DFAgentDescription();
