@@ -58,6 +58,7 @@ public class UserAgent extends Agent {
 		public void action() {
 			switch (step) {
 			case 1:
+				System.out.println(myAgent.getLocalName()+" is Starting its behaviour ...");
 				try {
 					con = Class.forName(className);
 					Object conn = con.newInstance();
@@ -158,7 +159,7 @@ public class UserAgent extends Agent {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						if (nbprocexec> 0 && (nbprocexec % 50) == 0) {
+						if (nbprocexec> 0 && (nbprocexec % 20) == 0) {
 							
 								try {
 									System.out.println("The user Agent " + myAgent.getLocalName() + " within the tenant "

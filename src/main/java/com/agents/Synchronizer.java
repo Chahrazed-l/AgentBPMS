@@ -62,12 +62,13 @@ public class Synchronizer extends Agent {
 	public class synchroBehav extends Behaviour {
 		MessageTemplate mt;
 		int step = 1;
-		boolean found = false;
+		boolean found = true;
 
 		@Override
 		public void action() {
 			switch (step) {
 			case 1:
+				System.out.println(myAgent.getLocalName()+" is Starting its behaviour ...");
 				try {
 					con = Class.forName(className);
 					Object conn = con.newInstance();
@@ -129,7 +130,7 @@ public class Synchronizer extends Agent {
 				ACLMessage mgk = myAgent.receive(mt1);
 				Struct struct = new Struct(listofPendingTasks, nbproca);
 				try {
-					nbproc = 50;
+					nbproc = 100;
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
 					struct = (Struct) getNameMethod1.invoke(conn1, nbpage, nbproc, token, userId);
@@ -182,17 +183,34 @@ public class Synchronizer extends Agent {
 							}
 						}
 					} else {
-						for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
-							ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
-							msg.addReceiver(userID.get(i));
-							try {
-								msg.setContentObject(struct.getPendingList().get(i));
-								assigned.add(struct.getPendingList().get(i));
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+						if(struct.getProccactif() - nbprocessActif<=struct.getPendingList().size() && struct.getPendingList().size()>0) {
+							System.out.println("the size of pending is "+struct.getPendingList().size());
+							for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
+								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+								msg.addReceiver(userID.get(i));
+								try {
+									msg.setContentObject(struct.getPendingList().get(i));
+									assigned.add(struct.getPendingList().get(i));
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								send(msg);
 							}
-							send(msg);
+						}
+						else {
+							for (int i = 0; i < struct.getPendingList().get(i); i++) {
+								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+								msg.addReceiver(userID.get(i));
+								try {
+									msg.setContentObject(struct.getPendingList().get(i));
+									assigned.add(struct.getPendingList().get(i));
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								send(msg);
+							}
 						}
 					}
 					found = true;
@@ -200,7 +218,9 @@ public class Synchronizer extends Agent {
 
 				else {
 					if (found) {
-						System.out.println("Threshold  " + nbprocessActif + " within the tenant "+tenantName+" is reached Stop the execution of tasks : System Time Zone --- "+ZonedDateTime.now());
+						System.out.println("Threshold  " + nbprocessActif + " within the tenant " + tenantName
+								+ " is reached Stop the execution of tasks : System Time Zone --- "
+								+ ZonedDateTime.now());
 						found = false;
 					}
 				}
@@ -210,7 +230,7 @@ public class Synchronizer extends Agent {
 				} else {
 					step = 2;
 					try {
-						Thread.sleep(200);
+						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

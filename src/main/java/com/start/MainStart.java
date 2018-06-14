@@ -78,6 +78,7 @@ public class MainStart {
 		String filename = args[2].toString();
 		rt = emptyPlatform(containerList);
 		String className = classNameToinstantiate(bpms_name);
+		System.out.println("The Name of the BPMS is "+bpms_name);
 		conMan = MainStart.getConnectionManager();
 		con = new MainStart(HttpClients.custom().setConnectionManager(conMan).build(),MainStart.uri);
 		token=con.doLoginPlatform(username, password);
@@ -182,7 +183,7 @@ public class MainStart {
 								new Object[] { uRi, userName, password, tenantId, "com.bpms." + className,
 										tenantName });// arguments
 						ag.start();
-						System.out.println("The agent " + userName + i + tenantName + " is created succefully within "
+						System.out.println("The agent " + userName + i + tenantName + " is created within "
 								+ tenantName);
 					} catch (StaleProxyException e) {
 						e.printStackTrace();
@@ -212,7 +213,7 @@ public class MainStart {
 										"com.bpms." + className, tenantName });// arguments
 						ag.start();
 						System.out.println("The agent " + userName + i + tenantName
-								+ " is created succefully within tenant" + tenantName);
+								+ " is created within tenant" + tenantName);
 
 					} catch (StaleProxyException e) {
 						e.printStackTrace();
@@ -371,6 +372,9 @@ public class MainStart {
 		HttpResponse response = null;
 		try {
 			response = httpClient.execute(postRequest, httpContext);
+			if (response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
+				System.out.println("Platform ADMIN logged IN Bonita");
+			}
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
