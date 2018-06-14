@@ -33,12 +33,12 @@ The simulator takes as input:
 * The BPMS url
 * A config.txt: This file has the following format: 
 ```
-The name of the tenant; The tenant id; userName; password; Number of agents per user; Number of  active Tasks 
+The tenantName; userName; password; Number of agents per user; Number of  active Tasks 
 ```
 For example:
 
 ```
-T1;2;user1;user1;5;1000
+tenant1;user1;user1;5;1000
 ```
 - The tenant name is written using this regular expression ([A-Z][0-9]{1,4}). For example "T1" to say tenant1. It does not have any relation with the BPMS tenant name, it is named that way to facilitate the management of containers and the organisation of the agents within Jade platform. 
 
@@ -78,12 +78,12 @@ chmod +x dummyscript.sh  (script shell to start dummyAgent)
 To stop the agents users the script takes as parameters: a message "stop" and the name of the tenant for example   
 
 ```
-./dummyscript.sh stop T1
+./dummyscript.sh stop tenant1
 ```
-It allows stopping agents within T1 
+It allows stopping agents within tenant1 
 
 To start the agents users the script takes as parameters: a message "start", the name of the tenant and the url of the destination platform.
  ```
- ./dummyscript.sh start T1 < URL >
+ ./dummyscript.sh start tenant1 < URL >
   ```
-It allows starting agents within T1 to reconnect to BPMS using the new URL.
+It allows starting agents within tenant1 to reconnect to BPMS using the new URL.
