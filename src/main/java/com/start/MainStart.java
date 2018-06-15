@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +40,6 @@ import org.json.simple.parser.JSONParser;
 import com.bpms.BonitaPlatform;
 import com.bpms.Struct;
 
-
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -59,29 +60,40 @@ public class MainStart {
 	protected CloseableHttpClient httpClient;
 	protected HttpContext httpContext;
 	public static String uri;
-	public static String username="platformAdmin";
-	public static String password="platform";
-	public static PoolingHttpClientConnectionManager conMan ;
+	public static String username = "platformAdmin";
+	public static String password = "platform";
+	public static PoolingHttpClientConnectionManager conMan;
 	public static MainStart con;
 	public static String token;
-	
+
 	public MainStart() {
-		
+
 	}
-    public MainStart(CloseableHttpClient client, String platformURI) {
-    	this.httpClient = client;
-	this.uri = platformURI;
+
+	public MainStart(CloseableHttpClient client, String platformURI) {
+		this.httpClient = client;
+		this.uri = platformURI;
 	}
-	public static void main(String[] args)  {
+
+	public static void main(String[] args) throws IOException {
 		String bpms_name = args[0].toString();
 		uri = args[1].toString();
 		String filename = args[2].toString();
 		rt = emptyPlatform(containerList);
 		String className = classNameToinstantiate(bpms_name);
-		System.out.println("The Name of the BPMS is "+bpms_name);
+		boolean available = false;
+		int i=1;
+		while (!available) {
+			int status = getStatus(uri, i);
+			if (status == 200) {
+				available = true;
+			}
+			i++;
+		}
+		System.out.println("The Name of the BPMS is " + bpms_name);
 		conMan = MainStart.getConnectionManager();
-		con = new MainStart(HttpClients.custom().setConnectionManager(conMan).build(),MainStart.uri);
-		token=con.doLoginPlatform(username, password);
+		con = new MainStart(HttpClients.custom().setConnectionManager(conMan).build(), MainStart.uri);
+		token = con.doLoginPlatform(username, password);
 		createSecondContainers(rt, uri, bpms_name, filename, className, token);
 
 	}
@@ -146,7 +158,7 @@ public class MainStart {
 			String className, String token) {
 		// Read from file information about the tenants and the agents number
 		FileReader fileReader = null;
-		String tenantId=null;
+		String tenantId = null;
 		try {
 			fileReader = new FileReader(filename);
 		} catch (FileNotFoundException e) {
@@ -164,7 +176,7 @@ public class MainStart {
 			String password = match.group(3);
 			Integer userNumber = Integer.parseInt(match.group(4));
 			Long nbprocessActif = Long.parseLong(match.group(5));
-			tenantId= con.GetTenantId(token, tenantName);
+			tenantId = con.GetTenantId(token, tenantName);
 			// tester si le tenant deja existe ou pas
 			if (!checkTenant(tenantName, tenantcontainer)) {
 				// not found : create another second container with the tenant Name
@@ -183,8 +195,8 @@ public class MainStart {
 								new Object[] { uRi, userName, password, tenantId, "com.bpms." + className,
 										tenantName });// arguments
 						ag.start();
-						System.out.println("The agent " + userName + i + tenantName + " is created within "
-								+ tenantName);
+						System.out
+								.println("The agent " + userName + i + tenantName + " is created within " + tenantName);
 					} catch (StaleProxyException e) {
 						e.printStackTrace();
 					}
@@ -212,8 +224,8 @@ public class MainStart {
 								"com.agents.UserAgent", new Object[] { uRi, userName, password, tenantId,
 										"com.bpms." + className, tenantName });// arguments
 						ag.start();
-						System.out.println("The agent " + userName + i + tenantName
-								+ " is created within tenant" + tenantName);
+						System.out.println(
+								"The agent " + userName + i + tenantName + " is created within tenant" + tenantName);
 
 					} catch (StaleProxyException e) {
 						e.printStackTrace();
@@ -283,8 +295,8 @@ public class MainStart {
 	}
 
 	// Se connecter en tant que plqtform Admin to get tenant ID
-	public String GetTenantId(String token, String tenantName) {		
-		String id=null;
+	public String GetTenantId(String token, String tenantName) {
+		String id = null;
 		String tenantUrl = "/API/platform/tenant?f=name=";
 		HttpResponse response = executeGetRequest(tenantUrl + tenantName, token);
 		String actorJson;
@@ -307,12 +319,13 @@ public class MainStart {
 		for (int i = 0; i < array.size(); i++) {
 			JSONObject json = null;
 			json = (JSONObject) array.get(i);
-			 id = (String) json.get("id");
+			id = (String) json.get("id");
 		}
-		System.out.println("The id of the tenant is "+id);
+		System.out.println("The id of the tenant is " + id);
 		return id;
 	}
-	public static  PoolingHttpClientConnectionManager getConnectionManager() {
+
+	public static PoolingHttpClientConnectionManager getConnectionManager() {
 		{
 			// TODO Auto-generated method stub
 			PoolingHttpClientConnectionManager conMan = new PoolingHttpClientConnectionManager();
@@ -321,6 +334,7 @@ public class MainStart {
 			return conMan;
 		}
 	}
+
 	public HttpResponse executeGetRequest(String apiURI, String tokencsrf) {
 		// TODO Auto-generated method stub
 		try {
@@ -336,7 +350,8 @@ public class MainStart {
 			throw new RuntimeException(e);
 		}
 	}
-	public String doLoginPlatform(String username, String password) {	
+
+	public String doLoginPlatform(String username, String password) {
 		String loginUrl = "/platformloginservice";
 		try {
 			CookieStore cookieStore = new BasicCookieStore();
@@ -354,6 +369,7 @@ public class MainStart {
 			throw new RuntimeException();
 		}
 	}
+
 	public String getCookieValue(CookieStore cookieStore, String cookieName) {
 		// TODO Auto-generated method stub
 		String value = null;
@@ -365,6 +381,7 @@ public class MainStart {
 		}
 		return value;
 	}
+
 	public void executePostRequest(String url, UrlEncodedFormEntity entity) {
 		// TODO Auto-generated method stub
 		HttpPost postRequest = new HttpPost(uri + url);
@@ -383,4 +400,25 @@ public class MainStart {
 			e.printStackTrace();
 		}
 	}
+
+	public static int getStatus(String url, int i) throws IOException {
+
+		int code = 0;
+		try {
+			URL siteURL = new URL(url);
+			HttpURLConnection connection = (HttpURLConnection) siteURL.openConnection();
+			connection.setRequestMethod("GET");
+			connection.connect();
+			code = connection.getResponseCode();
+			if (code == 200) {
+				System.out.println("-> THE BPMS IS READY <- ");
+			}
+		} catch (Exception e) {
+			if(i==1) {
+			System.out.println("-> THE BPMS IS NOT AVAILABLE TRY TO RECONNECT AGAIN ... <- ");
+			}
+		}
+		return code;
+	}
+
 }

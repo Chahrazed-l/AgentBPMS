@@ -55,6 +55,7 @@ public class Synchronizer extends Agent {
 		// Register
 		registerSynchoAgent(tenantName);
 		userID = usersId(tenantName, this.getLocalName());
+		System.out.println(this.getLocalName()+" is Starting its behaviour ...");
 		this.addBehaviour(new synchroBehav());
 
 	}
@@ -63,21 +64,33 @@ public class Synchronizer extends Agent {
 		MessageTemplate mt;
 		int step = 1;
 		boolean found = true;
-
+		PoolingHttpClientConnectionManager pool;
 		@Override
 		public void action() {
 			switch (step) {
-			case 1:
-				System.out.println(myAgent.getLocalName()+" is Starting its behaviour ...");
+			case 1:	
 				try {
 					con = Class.forName(className);
 					Object conn = con.newInstance();
 					Method getNameMethod = conn.getClass().getMethod("getConnectionManager");
-					PoolingHttpClientConnectionManager pool = (PoolingHttpClientConnectionManager) getNameMethod
+					pool = (PoolingHttpClientConnectionManager) getNameMethod
 							.invoke(conn);
 					Constructor<?> myConstructor = con.getConstructor(CloseableHttpClient.class, String.class);
 					conn1 = myConstructor.newInstance(HttpClients.custom().setConnectionManager(pool).build(),
 							platform_URI);
+					Class<?>[] paramTypes = { String.class, String.class, String.class };
+					getNameMethod1 = conn1.getClass().getMethod("doLogin", paramTypes);
+					token = (String) getNameMethod1.invoke(conn1, login, password, tenantId);
+					if (token != null) {
+					Class<?>[] paramTypess = { String.class, String.class };
+					getNameMethod1 = conn1.getClass().getMethod("getactorID", paramTypess);
+					userId = (Long) getNameMethod1.invoke(conn1, token, login);
+					step=2;
+					}
+					else {
+						pool.close();
+						step=1;
+					}
 				} catch (ClassNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -100,30 +113,6 @@ public class Synchronizer extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				Class<?>[] paramTypes = { String.class, String.class, String.class };
-				try {
-					getNameMethod1 = conn1.getClass().getMethod("doLogin", paramTypes);
-					token = (String) getNameMethod1.invoke(conn1, login, password, tenantId);
-					Class<?>[] paramTypess = { String.class, String.class };
-					getNameMethod1 = conn1.getClass().getMethod("getactorID", paramTypess);
-					userId = (Long) getNameMethod1.invoke(conn1, token, login);
-				} catch (NoSuchMethodException e3) {
-					// TODO Auto-generated catch block
-					e3.printStackTrace();
-				} catch (SecurityException e3) {
-					// TODO Auto-generated catch block
-					e3.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				step = 2;
 				break;
 			case 2:
 				MessageTemplate mt1 = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
@@ -184,7 +173,7 @@ public class Synchronizer extends Agent {
 						}
 					} else {
 						if(struct.getProccactif() - nbprocessActif<=struct.getPendingList().size() && struct.getPendingList().size()>0) {
-							System.out.println("the size of pending is "+struct.getPendingList().size());
+							//System.out.println("the size of pending is "+struct.getPendingList().size());
 							for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
 								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 								msg.addReceiver(userID.get(i));

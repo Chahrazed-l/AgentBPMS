@@ -75,7 +75,7 @@ public class BonitaPlatform extends Bpms {
 		}
 
 	}
-
+	
 	@Override
 	public Struct retreiveTask(int numberPag, int numberproc, String token, long userId) {
 		// TODO Auto-generated method stu
@@ -285,7 +285,7 @@ public class BonitaPlatform extends Bpms {
 	}
 
 	@Override
-	public int executePostRequest(String uri, UrlEncodedFormEntity entity) {
+	public void executePostRequest(String uri, UrlEncodedFormEntity entity) {
 		// TODO Auto-generated method stub
 		HttpPost postRequest = new HttpPost(bonitaURI + uri);
 		postRequest.setEntity(entity);
@@ -299,16 +299,16 @@ public class BonitaPlatform extends Bpms {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return ensureStatusOk(response);
+		//return ensureStatusOk(response);
 	}
 
 	@Override
-	public PoolingHttpClientConnectionManager getConnectionManager() {
+	public  PoolingHttpClientConnectionManager getConnectionManager() {
 		{
 			// TODO Auto-generated method stub
 			PoolingHttpClientConnectionManager conMan = new PoolingHttpClientConnectionManager();
-			conMan.setMaxTotal(1000);
-			conMan.setDefaultMaxPerRoute(1000);
+			conMan.setMaxTotal(10000);
+			conMan.setDefaultMaxPerRoute(10000);
 			return conMan;
 		}
 	}

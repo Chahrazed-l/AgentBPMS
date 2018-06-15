@@ -45,6 +45,7 @@ public class UserAgent extends Agent {
 		className = args[4].toString();
 		tenantName = args[5].toString();
 		registerUserAgent(tenantName);
+		System.out.println(this.getLocalName()+" is Starting its behaviour ...");
 		this.addBehaviour(new UserBehavior());
 	}
 
@@ -58,7 +59,6 @@ public class UserAgent extends Agent {
 		public void action() {
 			switch (step) {
 			case 1:
-				System.out.println(myAgent.getLocalName()+" is Starting its behaviour ...");
 				try {
 					con = Class.forName(className);
 					Object conn = con.newInstance();
@@ -68,8 +68,19 @@ public class UserAgent extends Agent {
 					Constructor<?> myConstructor = con.getConstructor(CloseableHttpClient.class, String.class);
 					conn1 = myConstructor.newInstance(HttpClients.custom().setConnectionManager(pool).build(),
 							platform_URI);
-					
-					step = 2;
+					Class<?>[] paramTypes = { String.class, String.class, String.class };
+					getNameMethod1 = conn1.getClass().getMethod("doLogin", paramTypes);
+					token = (String) getNameMethod1.invoke(conn1, login, password, tenantId);
+					if (token != null) {
+						Class<?>[] paramTypess = { String.class, String.class };
+						getNameMethod1 = conn1.getClass().getMethod("getactorID", paramTypess);
+						userId = (Long) getNameMethod1.invoke(conn1, token, login);
+						step=2;
+						}
+						else {
+							pool.close();
+							step=1;
+						}
 
 				} catch (ClassNotFoundException e) {
 					// TODO Auto-generated catch block
@@ -84,29 +95,6 @@ public class UserAgent extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (SecurityException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				Class<?>[] paramTypes = { String.class, String.class, String.class };
-				try {
-					getNameMethod1 = conn1.getClass().getMethod("doLogin", paramTypes);
-					token = (String) getNameMethod1.invoke(conn1, login, password, tenantId);
-					Class<?>[] paramTypess = { String.class, String.class };
-					getNameMethod1 = conn1.getClass().getMethod("getactorID", paramTypess);
-					userId = (Long) getNameMethod1.invoke(conn1, token, login);
-				} catch (NoSuchMethodException e3) {
-					// TODO Auto-generated catch block
-					e3.printStackTrace();
-				} catch (SecurityException e3) {
-					// TODO Auto-generated catch block
-					e3.printStackTrace();
-				} catch (IllegalAccessException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IllegalArgumentException e) {

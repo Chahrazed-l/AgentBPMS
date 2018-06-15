@@ -22,7 +22,7 @@ public abstract class Bpms {
 	public abstract PoolingHttpClientConnectionManager getConnectionManager() ;
 	// Execute a Post Request
 	public abstract HttpResponse executePostRequest(String apiUri, String payloadAsString, String tokenCSRF);
-	public abstract int executePostRequest(String uri, UrlEncodedFormEntity entity);
+	public abstract void executePostRequest(String uri, UrlEncodedFormEntity entity);
 	// Get the cookie values from the response
 	public abstract String getCookieValue(CookieStore cookieStore, String cookieName);
 	// check the response value: OK or Not 
