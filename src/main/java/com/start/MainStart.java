@@ -91,9 +91,19 @@ public class MainStart {
 			i++;
 		}
 		System.out.println("The Name of the BPMS is " + bpms_name);
-		conMan = MainStart.getConnectionManager();
-		con = new MainStart(HttpClients.custom().setConnectionManager(conMan).build(), MainStart.uri);
-		token = con.doLoginPlatform(username, password);
+		
+		boolean ok=false;
+		while (!ok) {
+			conMan = MainStart.getConnectionManager();
+			con = new MainStart(HttpClients.custom().setConnectionManager(conMan).build(), MainStart.uri);
+			token = con.doLoginPlatform(username, password);
+			if(token!=null) {
+				ok=true;
+			}	
+			else {
+				conMan.close();
+			}
+		}
 		createSecondContainers(rt, uri, bpms_name, filename, className, token);
 
 	}
