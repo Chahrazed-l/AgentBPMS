@@ -82,7 +82,7 @@ public class MainStart {
 		rt = emptyPlatform(containerList);
 		String className = classNameToinstantiate(bpms_name);
 		boolean available = false;
-		int i=1;
+		int i = 1;
 		while (!available) {
 			int status = getStatus(uri, i);
 			if (status == 200) {
@@ -91,16 +91,16 @@ public class MainStart {
 			i++;
 		}
 		System.out.println("The Name of the BPMS is " + bpms_name);
-		
-		boolean ok=false;
+
+		boolean ok = false;
 		while (!ok) {
 			conMan = MainStart.getConnectionManager();
 			con = new MainStart(HttpClients.custom().setConnectionManager(conMan).build(), MainStart.uri);
 			token = con.doLoginPlatform(username, password);
-			if(token!=null) {
-				ok=true;
-			}	
-			else {
+			if (token != null) {
+				System.out.println("Platform Admin is In");
+				ok = true;
+			} else {
 				conMan.close();
 			}
 		}
@@ -186,7 +186,15 @@ public class MainStart {
 			String password = match.group(3);
 			Integer userNumber = Integer.parseInt(match.group(4));
 			Long nbprocessActif = Long.parseLong(match.group(5));
-			tenantId = con.GetTenantId(token, tenantName);
+			boolean found = false;
+			while (!found) {
+				tenantId = con.GetTenantId(token, tenantName);
+				if (tenantId != null) {
+					
+					found = true;
+				}
+
+			}
 			// tester si le tenant deja existe ou pas
 			if (!checkTenant(tenantName, tenantcontainer)) {
 				// not found : create another second container with the tenant Name
@@ -309,12 +317,11 @@ public class MainStart {
 		String id = null;
 		String tenantUrl = "/API/platform/tenant?f=name=";
 		HttpResponse response = executeGetRequest(tenantUrl + tenantName, token);
-		String actorJson;
+		String actorJson = null;
 		JSONArray array = null;
 		try {
 			actorJson = EntityUtils.toString(response.getEntity());
 			array = (JSONArray) new JSONParser().parse(actorJson);
-			System.out.println(actorJson);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -331,7 +338,10 @@ public class MainStart {
 			json = (JSONObject) array.get(i);
 			id = (String) json.get("id");
 		}
-		System.out.println("The id of the tenant is " + id);
+		//System.out.println("The id of the tenant is " + id);
+		if(id!=null) {
+			System.out.println(actorJson);
+		}
 		return id;
 	}
 
@@ -424,8 +434,8 @@ public class MainStart {
 				System.out.println("-> THE BPMS IS READY <- ");
 			}
 		} catch (Exception e) {
-			if(i==1) {
-			System.out.println("-> THE BPMS IS NOT AVAILABLE TRY TO RECONNECT AGAIN ... <- ");
+			if (i == 1) {
+				System.out.println("-> THE BPMS IS NOT AVAILABLE TRY TO RECONNECT AGAIN ... <- ");
 			}
 		}
 		return code;
