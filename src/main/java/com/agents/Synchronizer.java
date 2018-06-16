@@ -139,11 +139,10 @@ public class Synchronizer extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if (struct.getProccactif() > 0) {
-					struct.getPendingList().removeAll(assigned);
-					assigned = new ArrayList<Long>();
 					//System.out.println("The number of open tasks " + struct.getProccactif());
 					if (struct.getProccactif() > nbprocessActif) {
+						struct.getPendingList().removeAll(assigned);
+						assigned = new ArrayList<Long>();
 						// send to the agents the tasks to be executed
 						if (struct.getProccactif() - nbprocessActif >= userID.size()) {
 							if (userID.size() <= struct.getPendingList().size()) {
@@ -193,7 +192,7 @@ public class Synchronizer extends Agent {
 						}
 						found = true;
 					}
-				}
+				
 					else {
 						if (found) {
 							System.out.println("Threshold  " + nbprocessActif + " within the tenant " + tenantName
