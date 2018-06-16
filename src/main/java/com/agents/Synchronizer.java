@@ -139,7 +139,7 @@ public class Synchronizer extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if (struct.getPendingList().size() > 0) {
+				if (struct.getProccactif() > 0) {
 					struct.getPendingList().removeAll(assigned);
 					assigned = new ArrayList<Long>();
 					//System.out.println("The number of open tasks " + struct.getProccactif());
