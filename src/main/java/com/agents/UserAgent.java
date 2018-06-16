@@ -3,6 +3,7 @@ package com.agents;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -31,7 +32,7 @@ public class UserAgent extends Agent {
 	private String className;
 	Object conn1;
 	private long userId;
-	private int nbprocexec=0;
+	private int nbprocexec = 0;
 
 	private Method getNameMethod1;
 
@@ -45,7 +46,7 @@ public class UserAgent extends Agent {
 		className = args[4].toString();
 		tenantName = args[5].toString();
 		registerUserAgent(tenantName);
-		System.out.println(this.getLocalName()+" is Starting its behaviour ...");
+		System.out.println(this.getLocalName() + " is Starting its behaviour ...");
 		this.addBehaviour(new UserBehavior());
 	}
 
@@ -75,12 +76,11 @@ public class UserAgent extends Agent {
 						Class<?>[] paramTypess = { String.class, String.class };
 						getNameMethod1 = conn1.getClass().getMethod("getactorID", paramTypess);
 						userId = (Long) getNameMethod1.invoke(conn1, token, login);
-						step=2;
-						}
-						else {
-							pool.close();
-							step=1;
-						}
+						step = 2;
+					} else {
+						pool.close();
+						step = 1;
+					}
 
 				} catch (ClassNotFoundException e) {
 					// TODO Auto-generated catch block
@@ -115,7 +115,7 @@ public class UserAgent extends Agent {
 							long taskid = (Long) mgk.getContentObject();
 							Class<?>[] paramTypes1 = { long.class, String.class };
 							getNameMethod1 = conn1.getClass().getMethod("getTaskInfo", paramTypes1);
-							if((Boolean) getNameMethod1.invoke(conn1, taskid, token)==false) {
+							if ((Boolean) getNameMethod1.invoke(conn1, taskid, token) == false) {
 								Class<?>[] paramTypess = { long.class, long.class, String.class };
 								getNameMethod1 = conn1.getClass().getMethod("autoAssign", paramTypess);
 								getNameMethod1.invoke(conn1, taskid, userId, token);
@@ -123,10 +123,20 @@ public class UserAgent extends Agent {
 								Class<?>[] paramTyp = { long.class, long.class, String.class };
 								getNameMethod1 = conn1.getClass().getMethod("executeTask", paramTyp);
 								getNameMethod1.invoke(conn1, taskid, userId, token);
-								nbprocexec=nbprocexec+1;
+								nbprocexec = nbprocexec + 1;
+							} else {
+								System.out.println("The task Id is taken " + taskid);
 							}
-							else {
-								System.out.println("The task Id is taken "+taskid);
+							if (nbprocexec > 0 && (nbprocexec % 20) == 0) {
+								try {
+									System.out.println("The user Agent " + myAgent.getLocalName() + " within the tenant "
+											+ myAgent.getContainerController().getContainerName() + " achieved "
+											+ nbprocexec + "  --> At Timestamp: "
+											+ new Timestamp(System.currentTimeMillis()));
+								} catch (ControllerException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 							}
 						} catch (UnreadableException e) {
 							// TODO Auto-generated catch block
@@ -147,26 +157,14 @@ public class UserAgent extends Agent {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						if (nbprocexec> 0 && (nbprocexec % 20) == 0) {
-							
-								try {
-									System.out.println("The user Agent " + myAgent.getLocalName() + " within the tenant "
-											+ myAgent.getContainerController().getContainerName() + " achieved " + nbprocexec);
-								} catch (ControllerException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-						}
-						step=2;
-					} else 
-					if (mgk.getPerformative() == ACLMessage.REQUEST) {
-						
+						step = 2;
+					} else if (mgk.getPerformative() == ACLMessage.REQUEST) {
+
 						System.out.println("A message telling me to stop is received: " + myAgent.getLocalName());
 						step = 3;
 
 					}
-				}
-				else {
+				} else {
 					block();
 				}
 				break;

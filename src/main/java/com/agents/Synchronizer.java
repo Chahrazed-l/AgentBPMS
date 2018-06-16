@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 
@@ -55,7 +56,7 @@ public class Synchronizer extends Agent {
 		// Register
 		registerSynchoAgent(tenantName);
 		userID = usersId(tenantName, this.getLocalName());
-		System.out.println(this.getLocalName()+" is Starting its behaviour ...");
+		System.out.println(this.getLocalName() + " is Starting its behaviour ...");
 		this.addBehaviour(new synchroBehav());
 
 	}
@@ -65,16 +66,16 @@ public class Synchronizer extends Agent {
 		int step = 1;
 		boolean found = true;
 		PoolingHttpClientConnectionManager pool;
+
 		@Override
 		public void action() {
 			switch (step) {
-			case 1:	
+			case 1:
 				try {
 					con = Class.forName(className);
 					Object conn = con.newInstance();
 					Method getNameMethod = conn.getClass().getMethod("getConnectionManager");
-					pool = (PoolingHttpClientConnectionManager) getNameMethod
-							.invoke(conn);
+					pool = (PoolingHttpClientConnectionManager) getNameMethod.invoke(conn);
 					Constructor<?> myConstructor = con.getConstructor(CloseableHttpClient.class, String.class);
 					conn1 = myConstructor.newInstance(HttpClients.custom().setConnectionManager(pool).build(),
 							platform_URI);
@@ -82,14 +83,13 @@ public class Synchronizer extends Agent {
 					getNameMethod1 = conn1.getClass().getMethod("doLogin", paramTypes);
 					token = (String) getNameMethod1.invoke(conn1, login, password, tenantId);
 					if (token != null) {
-					Class<?>[] paramTypess = { String.class, String.class };
-					getNameMethod1 = conn1.getClass().getMethod("getactorID", paramTypess);
-					userId = (Long) getNameMethod1.invoke(conn1, token, login);
-					step=2;
-					}
-					else {
+						Class<?>[] paramTypess = { String.class, String.class };
+						getNameMethod1 = conn1.getClass().getMethod("getactorID", paramTypess);
+						userId = (Long) getNameMethod1.invoke(conn1, token, login);
+						step = 2;
+					} else {
 						pool.close();
-						step=1;
+						step = 1;
 					}
 				} catch (ClassNotFoundException e) {
 					// TODO Auto-generated catch block
@@ -139,92 +139,82 @@ public class Synchronizer extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				struct.getPendingList().removeAll(assigned);
-				assigned = new ArrayList<Long>();
-				if (struct.getProccactif() > nbprocessActif) {
-					// send to the agents the tasks to be executed
-					if (struct.getProccactif() - nbprocessActif >= userID.size()) {
-						if (userID.size() <= struct.getPendingList().size()) {
-							for (int i = 0; i < userID.size(); i++) {
-								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
-								msg.addReceiver(userID.get(i));
-								try {
-									msg.setContentObject(struct.getPendingList().get(i));
-									assigned.add(struct.getPendingList().get(i));
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
+				if (struct.getPendingList().size() > 0) {
+					struct.getPendingList().removeAll(assigned);
+					assigned = new ArrayList<Long>();
+					System.out.println("The number of open tasks " + struct.getProccactif());
+					if (struct.getProccactif() > nbprocessActif) {
+						// send to the agents the tasks to be executed
+						if (struct.getProccactif() - nbprocessActif >= userID.size()) {
+							if (userID.size() <= struct.getPendingList().size()) {
+								for (int i = 0; i < userID.size(); i++) {
+									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+									msg.addReceiver(userID.get(i));
+									try {
+										msg.setContentObject(struct.getPendingList().get(i));
+										assigned.add(struct.getPendingList().get(i));
+									} catch (IOException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									send(msg);
 								}
-								send(msg);
+							} else {
+								for (int i = 0; i < struct.getPendingList().size(); i++) {
+									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+									msg.addReceiver(userID.get(i));
+									try {
+										msg.setContentObject(struct.getPendingList().get(i));
+										assigned.add(struct.getPendingList().get(i));
+									} catch (IOException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									send(msg);
+								}
 							}
 						} else {
-							for (int i = 0; i < struct.getPendingList().size(); i++) {
-								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
-								msg.addReceiver(userID.get(i));
-								try {
-									msg.setContentObject(struct.getPendingList().get(i));
-									assigned.add(struct.getPendingList().get(i));
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
+							if (struct.getProccactif() - nbprocessActif <= struct.getPendingList().size()
+									&& struct.getPendingList().size() > 0) {
+								// System.out.println("the size of pending is "+struct.getPendingList().size());
+								for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
+									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+									msg.addReceiver(userID.get(i));
+									try {
+										msg.setContentObject(struct.getPendingList().get(i));
+										assigned.add(struct.getPendingList().get(i));
+									} catch (IOException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									send(msg);
 								}
-								send(msg);
 							}
 						}
+						found = true;
+					}
+				}
+					else {
+						if (found) {
+							System.out.println("Threshold  " + nbprocessActif + " within the tenant " + tenantName
+									+ " is reached Stop the execution of tasks : Timestamp ---  "
+									+ new Timestamp(System.currentTimeMillis()));
+							found = false;
+						}
+					}
+					if (mgk != null) {
+						step = 3;
+						System.out.println("A message telling me to STOP is recived !");
 					} else {
-						if(struct.getProccactif() - nbprocessActif<=struct.getPendingList().size() && struct.getPendingList().size()>0) {
-							//System.out.println("the size of pending is "+struct.getPendingList().size());
-							for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
-								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
-								msg.addReceiver(userID.get(i));
-								try {
-									msg.setContentObject(struct.getPendingList().get(i));
-									assigned.add(struct.getPendingList().get(i));
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-								send(msg);
-							}
-						}
-						else {
-							for (int i = 0; i < struct.getPendingList().get(i); i++) {
-								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
-								msg.addReceiver(userID.get(i));
-								try {
-									msg.setContentObject(struct.getPendingList().get(i));
-									assigned.add(struct.getPendingList().get(i));
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-								send(msg);
-							}
+						step = 2;
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 					}
-					found = true;
-				}
-
-				else {
-					if (found) {
-						System.out.println("Threshold  " + nbprocessActif + " within the tenant " + tenantName
-								+ " is reached Stop the execution of tasks : System Time Zone --- "
-								+ ZonedDateTime.now());
-						found = false;
-					}
-				}
-				if (mgk != null) {
-					step = 3;
-					System.out.println("A message telling me to STOP is recived !");
-				} else {
-					step = 2;
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
+				
 				break;
 			case 3:
 				mt = MessageTemplate.MatchAll();
