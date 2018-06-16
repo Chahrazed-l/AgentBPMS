@@ -142,7 +142,7 @@ public class Synchronizer extends Agent {
 				if (struct.getPendingList().size() > 0) {
 					struct.getPendingList().removeAll(assigned);
 					assigned = new ArrayList<Long>();
-					System.out.println("The number of open tasks " + struct.getProccactif());
+					//System.out.println("The number of open tasks " + struct.getProccactif());
 					if (struct.getProccactif() > nbprocessActif) {
 						// send to the agents the tasks to be executed
 						if (struct.getProccactif() - nbprocessActif >= userID.size()) {
