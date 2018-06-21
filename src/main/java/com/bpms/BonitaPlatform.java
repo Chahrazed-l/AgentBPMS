@@ -3,7 +3,11 @@ package com.bpms;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -20,6 +24,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -80,8 +85,10 @@ public class BonitaPlatform extends Bpms {
 	public Struct retreiveTask(int numberPag, int numberproc, String token, long userId) {
 		// TODO Auto-generated method stu
 		ArrayList<Long> listOfPendingTasks = new ArrayList<Long>();
+		ArrayList<String> listOfPendingcase = new ArrayList<String>();
+		ArrayList<Timestamp> dateready = new ArrayList<Timestamp>();
 		long nbprocactif = 0;
-		Struct struct = new Struct(listOfPendingTasks, nbprocactif);
+		Struct struct = new Struct(listOfPendingTasks,listOfPendingcase,dateready, nbprocactif);
 		HttpResponse response = executeGetRequest(
 				"/API/bpm/humanTask?p=0&c=" + numberproc + "&f=state%3dready&f=user_id%3d" + userId, token);
 		// ensureStatusOk(response,"retreiveTask" );
@@ -96,9 +103,13 @@ public class BonitaPlatform extends Bpms {
 				json = (JSONObject) array.get(i);
 				String id = (String) json.get("id");
 				long id1 = Long.valueOf(Long.parseLong(id, 10));
-				// System.out.println("The id of the assigned Task is " + id1);
+				String caseId= (String) json.get("parentCaseId");
+				Timestamp dateread= Timestamp.valueOf((String) json.get("reached_state_date"));
+				//System.out.println("The id of the assigned Task is " + id1+" caseId "+caseId);
 				if (!getTaskInfo(id1, token)) {
 					listOfPendingTasks.add(id1);
+					listOfPendingcase.add(caseId);
+					dateready.add(dateread);
 				}
 				// System.out.println("The id of the assigned Task is " + id);
 			}
@@ -113,7 +124,7 @@ public class BonitaPlatform extends Bpms {
 			e.printStackTrace();
 		}
 		nbprocactif = getInstanceLength(response);
-		struct = new Struct(listOfPendingTasks, nbprocactif);
+		struct = new Struct(listOfPendingTasks,listOfPendingcase,dateready, nbprocactif);
 		return struct;
 
 	}

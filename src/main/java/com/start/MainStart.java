@@ -206,6 +206,14 @@ public class MainStart {
 				tenantcontainer.getTenantList().add(tenantName);
 				System.out.println("Not found " + container);
 				tenantcontainer.getContainers().add(container);
+				try {
+
+					AgentController ag = container.createNewAgent("logger",
+							"com.agents.LogGenerator", new Object[] {tenantName});// arguments
+					ag.start();
+				} catch (StaleProxyException e) {
+					e.printStackTrace();
+				}
 				for (int i = 1; i <= userNumber; i++) {
 					try {
 

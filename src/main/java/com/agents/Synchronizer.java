@@ -12,6 +12,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
+import com.bpms.LogObject;
 import com.bpms.Struct;
 
 import jade.core.AID;
@@ -33,11 +34,15 @@ public class Synchronizer extends Agent {
 	private Class<?> con;
 	private String token;
 	private String className;
+	private Timestamp reqtime;
+	private Timestamp resptime;
 	private int nbpage = 0;
 	private int nbproc = 10;
 	Object conn1;
 	private long userId;
 	private ArrayList<Long> listofPendingTasks;
+	private ArrayList<String> listofPendingcase;
+	private ArrayList<Timestamp> listofdateready;
 	private long nbproca;
 	private Method getNameMethod1;
 	private long nbprocessActif;
@@ -117,12 +122,14 @@ public class Synchronizer extends Agent {
 			case 2:
 				MessageTemplate mt1 = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 				ACLMessage mgk = myAgent.receive(mt1);
-				Struct struct = new Struct(listofPendingTasks, nbproca);
+				Struct struct = new Struct(listofPendingTasks, listofPendingcase,listofdateready, nbproca);
 				try {
-					nbproc = 100;
+					nbproc = userID.size();
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
+					reqtime=new Timestamp(System.currentTimeMillis());
 					struct = (Struct) getNameMethod1.invoke(conn1, nbpage, nbproc, token, userId);
+					resptime=new Timestamp(System.currentTimeMillis());
 				} catch (NoSuchMethodException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -139,81 +146,86 @@ public class Synchronizer extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-					//System.out.println("The number of open tasks " + struct.getProccactif());
-					if (struct.getProccactif() > nbprocessActif) {
-						struct.getPendingList().removeAll(assigned);
-						assigned = new ArrayList<Long>();
-						// send to the agents the tasks to be executed
-						if (struct.getProccactif() - nbprocessActif >= userID.size()) {
-							if (userID.size() <= struct.getPendingList().size()) {
-								for (int i = 0; i < userID.size(); i++) {
-									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
-									msg.addReceiver(userID.get(i));
-									try {
-										msg.setContentObject(struct.getPendingList().get(i));
-										assigned.add(struct.getPendingList().get(i));
-									} catch (IOException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									}
-									send(msg);
+				// System.out.println("The number of open tasks " + struct.getProccactif());
+				if (struct.getProccactif() > nbprocessActif) {
+					struct.getPendingList().removeAll(assigned);
+					assigned = new ArrayList<Long>();
+					// send to the agents the tasks to be executed
+					if (struct.getProccactif() - nbprocessActif >= userID.size()) {
+						if (userID.size() <= struct.getPendingList().size()) {
+							for (int i = 0; i < userID.size(); i++) {
+								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+								msg.addReceiver(userID.get(i));
+								try {
+									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
+											struct.getPendingList().get(i),struct.getDateready().get(i), reqtime, resptime, reqtime,
+											resptime, reqtime, resptime);
+									msg.setContentObject(obj);
+									assigned.add(struct.getPendingList().get(i));
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
 								}
-							} else {
-								for (int i = 0; i < struct.getPendingList().size(); i++) {
-									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
-									msg.addReceiver(userID.get(i));
-									try {
-										msg.setContentObject(struct.getPendingList().get(i));
-										assigned.add(struct.getPendingList().get(i));
-									} catch (IOException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									}
-									send(msg);
-								}
+								send(msg);
 							}
 						} else {
-							if (struct.getProccactif() - nbprocessActif <= struct.getPendingList().size()
-									&& struct.getPendingList().size() > 0) {
-								// System.out.println("the size of pending is "+struct.getPendingList().size());
-								for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
-									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
-									msg.addReceiver(userID.get(i));
-									try {
-										msg.setContentObject(struct.getPendingList().get(i));
-										assigned.add(struct.getPendingList().get(i));
-									} catch (IOException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									}
-									send(msg);
+							for (int i = 0; i < struct.getPendingList().size(); i++) {
+								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+								msg.addReceiver(userID.get(i));
+								try {
+									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
+											struct.getPendingList().get(i),struct.getDateready().get(i), reqtime, resptime, reqtime,
+											resptime, reqtime, resptime);
+									System.out.println("l obj envoyer a user is "+obj.getCaseId()+" "+obj.getTaskId());
+									msg.setContentObject(obj);
+									assigned.add(struct.getPendingList().get(i));
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
 								}
+								send(msg);
 							}
 						}
-						found = true;
-					}
-				
-					else {
-						if (found) {
-							System.out.println("Threshold  " + nbprocessActif + " within the tenant " + tenantName
-									+ " is reached Stop the execution of tasks : Timestamp ---  "
-									+ new Timestamp(System.currentTimeMillis()));
-							found = false;
-						}
-					}
-					if (mgk != null) {
-						step = 3;
-						System.out.println("A message telling me to STOP is recived !");
 					} else {
-						step = 2;
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						if (struct.getProccactif() - nbprocessActif <= struct.getPendingList().size()
+								&& struct.getPendingList().size() > 0) {
+							// System.out.println("the size of pending is "+struct.getPendingList().size());
+							for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
+								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+								msg.addReceiver(userID.get(i));
+								try {
+									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
+											struct.getPendingList().get(i), struct.getDateready().get(i),reqtime, resptime, reqtime,
+											resptime, reqtime, resptime);
+									msg.setContentObject(obj);
+									assigned.add(struct.getPendingList().get(i));
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								send(msg);
+							}
 						}
 					}
-				
+					found = true;
+				}
+
+				else {
+					if (found) {
+						System.out.println("Threshold  " + nbprocessActif + " within the tenant " + tenantName
+								+ " is reached Stop the execution of tasks : Timestamp ---  "
+								+ new Timestamp(System.currentTimeMillis()));
+						found = false;
+					}
+				}
+				if (mgk != null) {
+					step = 3;
+					System.out.println("A message telling me to STOP is recived !");
+				} else {
+					step = 2;
+					 
+				}
+
 				break;
 			case 3:
 				mt = MessageTemplate.MatchAll();
@@ -238,7 +250,7 @@ public class Synchronizer extends Agent {
 		@Override
 		public boolean done() {
 			// TODO Auto-generated method stub
-			return false;
+			return step == -1;
 		}
 	}
 

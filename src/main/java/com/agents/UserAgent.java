@@ -1,14 +1,19 @@
 package com.agents;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
+import com.bpms.LogObject;
+
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
@@ -33,9 +38,12 @@ public class UserAgent extends Agent {
 	Object conn1;
 	private long userId;
 	private int nbprocexec = 0;
-
+	private Timestamp assignreq;
+	private Timestamp assignresp;
+	private Timestamp execreq;
+	private Timestamp execresp;
 	private Method getNameMethod1;
-
+	private AID writer;
 	// Initilize the agent
 	public void setup() {
 		Object[] args = getArguments();
@@ -46,6 +54,7 @@ public class UserAgent extends Agent {
 		className = args[4].toString();
 		tenantName = args[5].toString();
 		registerUserAgent(tenantName);
+		writer=writerId(tenantName);
 		System.out.println(this.getLocalName() + " is Starting its behaviour ...");
 		this.addBehaviour(new UserBehavior());
 	}
@@ -112,22 +121,37 @@ public class UserAgent extends Agent {
 					if (mgk.getPerformative() == ACLMessage.REQUEST_WHEN) {
 						try {
 							// Auto Assign
-							long taskid = (Long) mgk.getContentObject();
+							LogObject obj = (LogObject) mgk.getContentObject();
 							Class<?>[] paramTypes1 = { long.class, String.class };
 							getNameMethod1 = conn1.getClass().getMethod("getTaskInfo", paramTypes1);
-							if ((Boolean) getNameMethod1.invoke(conn1, taskid, token) == false) {
+							if ((Boolean) getNameMethod1.invoke(conn1, obj.getTaskId(), token) == false) {
 								Class<?>[] paramTypess = { long.class, long.class, String.class };
 								getNameMethod1 = conn1.getClass().getMethod("autoAssign", paramTypess);
-								getNameMethod1.invoke(conn1, taskid, userId, token);
+								assignreq=new Timestamp(System.currentTimeMillis());
+								getNameMethod1.invoke(conn1, obj.getTaskId(), userId, token);
+								assignresp= new Timestamp(System.currentTimeMillis());
 								// Execute
 								Class<?>[] paramTyp = { long.class, long.class, String.class };
 								getNameMethod1 = conn1.getClass().getMethod("executeTask", paramTyp);
-								getNameMethod1.invoke(conn1, taskid, userId, token);
+								execreq=new Timestamp(System.currentTimeMillis());
+								getNameMethod1.invoke(conn1, obj.getTaskId(), userId, token);
+								execresp= new Timestamp(System.currentTimeMillis());
 								nbprocexec = nbprocexec + 1;
+								
 							} else {
-								System.out.println("The task Id is taken " + taskid);
+								System.out.println("The task Id is taken " + obj.getTaskId());
 							}
-							if (nbprocexec > 0 && (nbprocexec % 20) == 0) {
+							//Envoi message to the agent writer 
+							obj.setReq_assign(assignreq);
+							obj.setResp_assign(assignresp);
+							obj.setReq_exec(execreq);
+							obj.setResp_exec(execresp);
+							ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+							msg.setContentObject(obj);
+							msg.addReceiver(writer);
+							send(msg);
+							//End sending message
+							if (nbprocexec > 0 && (nbprocexec % 100) == 0) {
 								try {
 									System.out.println("The user Agent " + myAgent.getLocalName() + " within the tenant "
 											+ myAgent.getContainerController().getContainerName() + " achieved "
@@ -156,6 +180,9 @@ public class UserAgent extends Agent {
 						} catch (InvocationTargetException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
 						}
 						step = 2;
 					} else if (mgk.getPerformative() == ACLMessage.REQUEST) {
@@ -208,5 +235,28 @@ public class UserAgent extends Agent {
 			fe.printStackTrace();
 		}
 	}
+	private AID writerId(String tenantName) {
+		AID writerId = null;
+		DFAgentDescription template = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType("Generate" + tenantName);
+		template.addServices(sd);
+		boolean found = false;
+		try {
+			do {
 
+				DFAgentDescription[] resultList = DFService.search(this, template);
+				if (resultList != null && resultList.length > 0) {
+					
+						writerId= resultList[0].getName();
+					
+					found = true;
+				} // System.out.println("not found yet");
+			} while (!found);
+		} catch (FIPAException fe) {
+			fe.printStackTrace();
+		}
+		// System.out.println("L'id de l'agent synchro est " + agentsynchro);
+		return writerId;
+	}
 }
