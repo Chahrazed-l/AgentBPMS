@@ -330,7 +330,7 @@ public class BonitaPlatform extends Bpms {
 		String assignid = "";
 		String actorJson = null;
 		boolean assign = false;
-		HttpResponse response = executeGetRequest("/API/bpm/userTask/" + activityId, token);
+		HttpResponse response = executeGetRequest("/API/bpm/humanTask/" + activityId, token);
 		if (response.getStatusLine().getStatusCode() == 200) {
 			try {
 				actorJson = EntityUtils.toString(response.getEntity());
@@ -339,6 +339,7 @@ public class BonitaPlatform extends Bpms {
 				JSONObject jsonObject = (JSONObject) jsonObj;
 				assignid = (String) jsonObject.get("assigned_id");
 				assignid = assignid.trim();
+				
 				// id1= Long.parseLong(assignid);
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -356,6 +357,7 @@ public class BonitaPlatform extends Bpms {
 		} else {
 			assign = true;
 		}
+		//System.out.println(activityId+" " +assign+"  "+assignid);
 		return assign;
 
 	}
