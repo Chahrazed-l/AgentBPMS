@@ -137,20 +137,20 @@ public class UserAgent extends Agent {
 								getNameMethod1.invoke(conn1, obj.getTaskId(), userId, token);
 								execresp= new Timestamp(System.currentTimeMillis());
 								nbprocexec = nbprocexec + 1;
+								//Envoi message to the agent writer 
+								obj.setReq_assign(assignreq);
+								obj.setResp_assign(assignresp);
+								obj.setReq_exec(execreq);
+								obj.setResp_exec(execresp);
+								ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+								msg.setContentObject(obj);
+								msg.addReceiver(writer);
+								send(msg);
 								
 							} else {
 								System.out.println("The task Id is taken " + obj.getTaskId());
 							}
-							//Envoi message to the agent writer 
-							obj.setReq_assign(assignreq);
-							obj.setResp_assign(assignresp);
-							obj.setReq_exec(execreq);
-							obj.setResp_exec(execresp);
-							ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-							msg.setContentObject(obj);
-							msg.addReceiver(writer);
-							send(msg);
-							//End sending message
+							
 							if (nbprocexec > 0 && (nbprocexec % 100) == 0) {
 								try {
 									System.out.println("The user Agent " + myAgent.getLocalName() + " within the tenant "

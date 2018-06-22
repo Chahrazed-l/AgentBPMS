@@ -48,7 +48,8 @@ public class Synchronizer extends Agent {
 	private long nbprocessActif;
 	private ArrayList<AID> userID;
 	private ArrayList<Long> assigned = new ArrayList<Long>();
-
+	private ArrayList<String> cases = new ArrayList<String>();
+	private ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 	public void setup() {
 		Object[] args = getArguments();
 		platform_URI = args[0].toString();
@@ -122,14 +123,14 @@ public class Synchronizer extends Agent {
 			case 2:
 				MessageTemplate mt1 = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 				ACLMessage mgk = myAgent.receive(mt1);
-				Struct struct = new Struct(listofPendingTasks, listofPendingcase,listofdateready, nbproca);
+				Struct struct = new Struct(listofPendingTasks, listofPendingcase, listofdateready, nbproca);
 				try {
-					nbproc = userID.size();
+					nbproc = 100;
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
-					reqtime=new Timestamp(System.currentTimeMillis());
+					reqtime = new Timestamp(System.currentTimeMillis());
 					struct = (Struct) getNameMethod1.invoke(conn1, nbpage, nbproc, token, userId);
-					resptime=new Timestamp(System.currentTimeMillis());
+					resptime = new Timestamp(System.currentTimeMillis());
 				} catch (NoSuchMethodException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -149,7 +150,11 @@ public class Synchronizer extends Agent {
 				// System.out.println("The number of open tasks " + struct.getProccactif());
 				if (struct.getProccactif() > nbprocessActif) {
 					struct.getPendingList().removeAll(assigned);
+					struct.getPendingcaseId().removeAll(cases);
+					struct.getDateready().removeAll(times);
 					assigned = new ArrayList<Long>();
+					cases = new ArrayList<String>();
+					times= new ArrayList<Timestamp>();
 					// send to the agents the tasks to be executed
 					if (struct.getProccactif() - nbprocessActif >= userID.size()) {
 						if (userID.size() <= struct.getPendingList().size()) {
@@ -158,10 +163,12 @@ public class Synchronizer extends Agent {
 								msg.addReceiver(userID.get(i));
 								try {
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
-											struct.getPendingList().get(i),struct.getDateready().get(i), reqtime, resptime, reqtime,
-											resptime, reqtime, resptime);
+											struct.getPendingList().get(i), struct.getDateready().get(i), reqtime,
+											resptime, reqtime, resptime, reqtime, resptime);
 									msg.setContentObject(obj);
 									assigned.add(struct.getPendingList().get(i));
+									cases.add(struct.getPendingcaseId().get(i));
+									times.add(struct.getDateready().get(i));
 								} catch (IOException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -174,11 +181,12 @@ public class Synchronizer extends Agent {
 								msg.addReceiver(userID.get(i));
 								try {
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
-											struct.getPendingList().get(i),struct.getDateready().get(i), reqtime, resptime, reqtime,
-											resptime, reqtime, resptime);
-									System.out.println("l obj envoyer a user is "+obj.getCaseId()+" "+obj.getTaskId());
+											struct.getPendingList().get(i), struct.getDateready().get(i), reqtime,
+											resptime, reqtime, resptime, reqtime, resptime);
 									msg.setContentObject(obj);
 									assigned.add(struct.getPendingList().get(i));
+									cases.add(struct.getPendingcaseId().get(i));
+									times.add(struct.getDateready().get(i));
 								} catch (IOException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -195,10 +203,12 @@ public class Synchronizer extends Agent {
 								msg.addReceiver(userID.get(i));
 								try {
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
-											struct.getPendingList().get(i), struct.getDateready().get(i),reqtime, resptime, reqtime,
-											resptime, reqtime, resptime);
+											struct.getPendingList().get(i), struct.getDateready().get(i), reqtime,
+											resptime, reqtime, resptime, reqtime, resptime);
 									msg.setContentObject(obj);
 									assigned.add(struct.getPendingList().get(i));
+									cases.add(struct.getPendingcaseId().get(i));
+									times.add(struct.getDateready().get(i));
 								} catch (IOException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -222,8 +232,14 @@ public class Synchronizer extends Agent {
 					step = 3;
 					System.out.println("A message telling me to STOP is recived !");
 				} else {
+					
 					step = 2;
-					 
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 
 				break;

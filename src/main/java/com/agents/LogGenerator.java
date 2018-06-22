@@ -19,7 +19,7 @@ public class LogGenerator extends Agent {
 	private String tenantName;
 	private static final String COMMA_DELIMITER = ",";
 	private static final String NEW_LINE_SEPARATOR = "\n";
-	private static final String FILE_HEADER = "caseId,taskId,Ready_Time,Originator,Req_retrieve_Time,Resp_retrieve_Time,Req_Assign_Tim,Resp_Assign_Time,Req_exec_Time,Resp_exec_Time,Retrive_Time,Assign_Time,Exec_Time,Retrive_Exec,Treatment,Ready_Exec";
+	private static final String FILE_HEADER = "caseId,taskId,Ready_Time,Originator,Req_retrieve_Time,Resp_retrieve_Time,Req_Assign_Tim,Resp_Assign_Time,Req_exec_Time,Resp_exec_Time,Retrive_Time,Assign_Time,Exec_Time,Retrive_Exec,Ag_Time,Ready_Exec";
 	private FileWriter fileWriter = null;
 	private File file;
 
@@ -94,8 +94,8 @@ public class LogGenerator extends Agent {
 							long diff = obj.getResp_exec().getTime() - obj.getReq_retrive().getTime();
 							fileWriter.append(String.valueOf(diff));
 							fileWriter.append(COMMA_DELIMITER);
-							long diff1 = diff-(exTime+auTime+reTime);
-							fileWriter.append(String.valueOf(diff1));
+							long agtime = obj.getReq_assign().getTime() - obj.getResp_retrive().getTime();
+							fileWriter.append(String.valueOf(agtime));
 							fileWriter.append(COMMA_DELIMITER);
 							long readyToexec = obj.getResp_exec().getTime()-obj.getDateready().getTime();
 							fileWriter.append(String.valueOf(readyToexec));
