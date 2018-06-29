@@ -60,6 +60,7 @@ public class MainStart {
 	protected CloseableHttpClient httpClient;
 	protected HttpContext httpContext;
 	public static String uri;
+	public static String attente;
 	public static String username = "platformAdmin";
 	public static String password = "platform";
 	public static PoolingHttpClientConnectionManager conMan;
@@ -79,6 +80,7 @@ public class MainStart {
 		String bpms_name = args[0].toString();
 		uri = args[1].toString();
 		String filename = args[2].toString();
+		attente = args[3].toString();
 		rt = emptyPlatform(containerList);
 		String className = classNameToinstantiate(bpms_name);
 		boolean available = false;
@@ -232,7 +234,7 @@ public class MainStart {
 
 					AgentController ag = container.createNewAgent(userName + "synchro" + tenantName,
 							"com.agents.Synchronizer", new Object[] { uRi, userName, password, tenantId,
-									"com.bpms." + className, nbprocessActif, tenantName });// arguments
+									"com.bpms." + className, nbprocessActif, tenantName, attente});// arguments
 					ag.start();
 					System.out.println("The agent " + userName + "synchro" + tenantName
 							+ " is created succefully within " + tenantName);

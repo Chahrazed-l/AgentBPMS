@@ -38,6 +38,7 @@ public class Synchronizer extends Agent {
 	private Timestamp resptime;
 	private int nbpage = 0;
 	private int nbproc = 10;
+	private long attente;
 	Object conn1;
 	private long userId;
 	private ArrayList<Long> listofPendingTasks;
@@ -59,6 +60,7 @@ public class Synchronizer extends Agent {
 		className = args[4].toString();
 		nbprocessActif = Long.parseLong(args[5].toString());
 		tenantName = args[6].toString();
+		attente= Long.parseLong(args[7].toString());
 		// Register
 		registerSynchoAgent(tenantName);
 		userID = usersId(tenantName, this.getLocalName());
@@ -235,7 +237,8 @@ public class Synchronizer extends Agent {
 					
 					step = 2;
 					try {
-						Thread.sleep(500);
+						Thread.sleep(attente);
+						System.out.println("I m here ");
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
