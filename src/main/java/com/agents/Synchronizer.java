@@ -5,9 +5,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
-//import java.time.ZonedDateTime;
 import java.util.ArrayList;
-//import java.util.Iterator;
+
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -15,8 +14,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import com.bpms.LogObject;
 import com.bpms.Struct;
-
-//import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -223,7 +220,7 @@ public class Synchronizer extends Agent {
 								send(msg);
 							}
 						} else {
-							if (struct.getProccactif() - nbprocessActif > 0) {
+							if (struct.getPendingList().size() > 0 && struct.getProccactif() - nbprocessActif>0) {
 								for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
 									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 									msg.addReceiver(userID.get(i));
