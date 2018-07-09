@@ -88,7 +88,7 @@ public class BonitaPlatform extends Bpms {
 		ArrayList<String> listOfPendingcase = new ArrayList<String>();
 		ArrayList<Timestamp> dateready = new ArrayList<Timestamp>();
 		long nbprocactif = 0;
-		Struct struct = new Struct(listOfPendingTasks,listOfPendingcase,dateready, nbprocactif);
+		Struct struct = new Struct(listOfPendingTasks,listOfPendingcase, nbprocactif);
 		HttpResponse response = executeGetRequest(
 				"/API/bpm/humanTask?p=0&c=" + numberproc + "&f=state%3dready&f=user_id%3d" + userId, token);
 		// ensureStatusOk(response,"retreiveTask" );
@@ -104,12 +104,12 @@ public class BonitaPlatform extends Bpms {
 				String id = (String) json.get("id");
 				long id1 = Long.valueOf(Long.parseLong(id, 10));
 				String caseId= (String) json.get("parentCaseId");
-				Timestamp dateread= Timestamp.valueOf((String) json.get("reached_state_date"));
+				//Timestamp dateread= Timestamp.valueOf((String) json.get("reached_state_date"));
 				//System.out.println("The id of the assigned Task is " + id1+" caseId "+caseId);
 				if (!getTaskInfo(id1, token)) {
 					listOfPendingTasks.add(id1);
 					listOfPendingcase.add(caseId);
-					dateready.add(dateread);
+					//dateready.add(dateread);
 				}
 				// System.out.println("The id of the assigned Task is " + id);
 			}
@@ -124,7 +124,7 @@ public class BonitaPlatform extends Bpms {
 			e.printStackTrace();
 		}
 		nbprocactif = getInstanceLength(response);
-		struct = new Struct(listOfPendingTasks,listOfPendingcase,dateready, nbprocactif);
+		struct = new Struct(listOfPendingTasks,listOfPendingcase, nbprocactif);
 		return struct;
 
 	}

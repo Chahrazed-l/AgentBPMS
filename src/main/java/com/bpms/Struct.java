@@ -8,15 +8,14 @@ import jade.wrapper.ContainerController;
 public class Struct {
 	private ArrayList<Long> pendingList;
 	private ArrayList<String> pendingcaseId;
-	private ArrayList<Timestamp> dateready;
 	private long proccactif;
 	private ArrayList<String> tenantList;
 	private ArrayList<ContainerController> containers;
 	private long taskid;
-	public Struct(ArrayList<Long> pendingList,ArrayList<String> pendingcaseId,ArrayList<Timestamp> dateready, long proccactif ){
+	public Struct(ArrayList<Long> pendingList,ArrayList<String> pendingcaseId, long proccactif ){
 		this.pendingList = pendingList;
 		this.pendingcaseId=pendingcaseId;
-		this.dateready=dateready;
+		//this.dateready=dateready;
 		this.proccactif = proccactif;
 	
 	}
@@ -26,13 +25,7 @@ public class Struct {
 		this.containers = containers;
 	}
 
-	public ArrayList<Timestamp> getDateready() {
-		return dateready;
-	}
-
-	public void setDateready(ArrayList<Timestamp> dateready) {
-		this.dateready = dateready;
-	}
+	
 
 	public ArrayList<String> getTenantList() {
 		return tenantList;

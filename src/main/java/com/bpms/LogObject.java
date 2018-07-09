@@ -6,7 +6,6 @@ import java.sql.Timestamp;
 public class LogObject implements Serializable {
 	String caseId;
 	long taskId;
-	Timestamp dateready;
 	Timestamp req_retrive;
 	Timestamp resp_retrive;
 	Timestamp req_assign;
@@ -14,11 +13,10 @@ public class LogObject implements Serializable {
 	Timestamp req_exec;
 	Timestamp resp_exec;
 
-	public LogObject(String caseId, long taskId,Timestamp dateready, Timestamp req_retrive, Timestamp resp_retrive, Timestamp req_assign,
+	public LogObject(String caseId, long taskId, Timestamp req_retrive, Timestamp resp_retrive, Timestamp req_assign,
 			Timestamp resp_assign, Timestamp req_exec, Timestamp resp_exec) {
 		this.caseId = caseId;
 		this.taskId = taskId;
-		this.dateready=dateready;
 		this.req_retrive = req_retrive;
 		this.resp_retrive = resp_retrive;
 		this.req_assign = req_assign;
@@ -37,14 +35,6 @@ public class LogObject implements Serializable {
 
 	public long getTaskId() {
 		return taskId;
-	}
-
-	public Timestamp getDateready() {
-		return dateready;
-	}
-
-	public void setDateready(Timestamp dateready) {
-		this.dateready = dateready;
 	}
 
 	public void setTaskId(long taskId) {
