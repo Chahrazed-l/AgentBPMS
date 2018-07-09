@@ -154,6 +154,7 @@ public class Synchronizer extends Agent {
 					struct.getPendingList().removeAll(assigned);
 					struct.getPendingcaseId().removeAll(cases);
 					struct.getDateready().removeAll(times);
+					System.out.println("1  "+struct.getPendingcaseId().size()+" "+struct.getPendingList().size()+" "+struct.getDateready().size());
 					assigned = new ArrayList<Long>();
 					cases = new ArrayList<String>();
 					times= new ArrayList<Timestamp>();
@@ -182,6 +183,7 @@ public class Synchronizer extends Agent {
 								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 								msg.addReceiver(userID.get(i));
 								try {
+									System.out.println("2  "+struct.getPendingcaseId().size()+" "+struct.getPendingList().size()+" "+struct.getDateready().size());
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
 											struct.getPendingList().get(i), struct.getDateready().get(i), reqtime,
 											resptime, reqtime, resptime, reqtime, resptime);
@@ -197,13 +199,34 @@ public class Synchronizer extends Agent {
 							}
 						}
 					} else {
-						if (struct.getProccactif() - nbprocessActif <= struct.getPendingList().size()
+						if (struct.getProccactif() - nbprocessActif >= struct.getPendingList().size()
 								&& struct.getPendingList().size() > 0) {
 							// System.out.println("the size of pending is "+struct.getPendingList().size());
+							for (int i = 0; i < struct.getPendingList().size(); i++) {
+								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
+								msg.addReceiver(userID.get(i));
+								try {
+									System.out.println("3  "+struct.getPendingcaseId().size()+" "+struct.getPendingList().size()+" "+struct.getDateready().size());
+									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
+											struct.getPendingList().get(i), struct.getDateready().get(i), reqtime,
+											resptime, reqtime, resptime, reqtime, resptime);
+									msg.setContentObject(obj);
+									assigned.add(struct.getPendingList().get(i));
+									cases.add(struct.getPendingcaseId().get(i));
+									times.add(struct.getDateready().get(i));
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								send(msg);
+							}
+						}
+						else {
 							for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
 								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 								msg.addReceiver(userID.get(i));
 								try {
+									System.out.println("4  "+struct.getPendingcaseId().size()+" "+struct.getPendingList().size()+" "+struct.getDateready().size());
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
 											struct.getPendingList().get(i), struct.getDateready().get(i), reqtime,
 											resptime, reqtime, resptime, reqtime, resptime);
@@ -238,7 +261,6 @@ public class Synchronizer extends Agent {
 					step = 2;
 					try {
 						Thread.sleep(attente);
-						System.out.println("I m here ");
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
