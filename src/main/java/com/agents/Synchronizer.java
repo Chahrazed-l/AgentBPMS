@@ -6,7 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-
+import java.util.Iterator;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -149,10 +149,17 @@ public class Synchronizer extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				// System.out.println("The number of open tasks " + struct.getProccactif());
 				if (struct.getProccactif() > nbprocessActif) {
-					struct.getPendingList().removeAll(assigned);
-					struct.getPendingcaseId().removeAll(cases);
+					Iterator<Long> iter = struct.getPendingList().iterator();
+					Iterator<String> iter1 = struct.getPendingcaseId().iterator();
+				    while (iter.hasNext() && iter1.hasNext()) {
+				        long in = iter.next();
+				        String in1=iter1.next();
+				        if (exist(in, assigned)) {
+				            iter.remove();
+				            iter1.remove();
+				        }
+				    }
 					System.out.println("1  " + struct.getPendingcaseId().size() + " " + struct.getPendingList().size());
 					assigned = new ArrayList<Long>();
 					cases = new ArrayList<String>();
@@ -294,7 +301,20 @@ public class Synchronizer extends Agent {
 			return step == -1;
 		}
 	}
-
+	//Function exist
+	
+	public boolean exist(long  it, ArrayList<Long> list) {
+		boolean found=false;
+		int i=0;
+		while (i<list.size() && !found) {
+			if(list.get(i)==it) {
+				found=true;
+			}
+			i++;
+		}
+		return found;
+	}
+	
 	private ArrayList<AID> usersId(String tenantName, String name) {
 		ArrayList<AID> useragents = new ArrayList<AID>();
 		DFAgentDescription template = new DFAgentDescription();
