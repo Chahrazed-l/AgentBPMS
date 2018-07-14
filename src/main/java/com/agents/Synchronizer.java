@@ -127,7 +127,7 @@ public class Synchronizer extends Agent {
 				ACLMessage mgk = myAgent.receive(mt1);
 				Struct struct = new Struct(listofPendingTasks, listofPendingcase, nbproca);
 				try {
-					nbproc = 100;
+					nbproc = userID.size()*2;
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
 					reqtime = new Timestamp(System.currentTimeMillis());
