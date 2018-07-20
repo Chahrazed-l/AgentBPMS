@@ -130,11 +130,11 @@ public class Synchronizer extends Agent {
 					nbproc = userID.size()*2;
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
-					System.out.println("Request retrieve to Bonita is sent");
+					System.out.println("Request retrieve to Bonita is sent  "+new Timestamp(System.currentTimeMillis()));
 					reqtime = new Timestamp(System.currentTimeMillis());
 					struct = (Struct) getNameMethod1.invoke(conn1, nbpage, nbproc, token, userId);
 					resptime = new Timestamp(System.currentTimeMillis());
-					System.out.println("Response retrieve from Bonita Received number of active tasks is "+struct.getProccactif());
+					System.out.println("Response retrieve from Bonita Received number of active tasks is  "+struct.getProccactif()+ ": timestamp: "+new Timestamp(System.currentTimeMillis()));
 				} catch (NoSuchMethodException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
