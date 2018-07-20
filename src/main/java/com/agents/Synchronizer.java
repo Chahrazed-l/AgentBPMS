@@ -130,9 +130,11 @@ public class Synchronizer extends Agent {
 					nbproc = userID.size()*2;
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
+					System.out.println("Request retrieve to Bonita is sent");
 					reqtime = new Timestamp(System.currentTimeMillis());
 					struct = (Struct) getNameMethod1.invoke(conn1, nbpage, nbproc, token, userId);
 					resptime = new Timestamp(System.currentTimeMillis());
+					System.out.println("Response retrieve from Bonita Received number of active tasks is "+struct.getProccactif());
 				} catch (NoSuchMethodException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -160,7 +162,7 @@ public class Synchronizer extends Agent {
 				            iter1.remove();
 				        }
 				    }
-					System.out.println("1  " + struct.getPendingcaseId().size() + " " + struct.getPendingList().size());
+					//System.out.println("1  " + struct.getPendingcaseId().size() + " " + struct.getPendingList().size());
 					assigned = new ArrayList<Long>();
 					cases = new ArrayList<String>();
 					// send to the agents the tasks to be executed
@@ -187,8 +189,8 @@ public class Synchronizer extends Agent {
 								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 								msg.addReceiver(userID.get(i));
 								try {
-									System.out.println("2  " + struct.getPendingcaseId().size() + " "
-											+ struct.getPendingList().size());
+									//System.out.println("2  " + struct.getPendingcaseId().size() + " "
+											//+ struct.getPendingList().size());
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
 											struct.getPendingList().get(i), reqtime,
 											resptime, reqtime, resptime, reqtime, resptime);
@@ -211,8 +213,8 @@ public class Synchronizer extends Agent {
 								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 								msg.addReceiver(userID.get(i));
 								try {
-									System.out.println("3  " + struct.getPendingcaseId().size() + " "
-											+ struct.getPendingList().size());
+									//System.out.println("3  " + struct.getPendingcaseId().size() + " "
+											//+ struct.getPendingList().size());
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
 											struct.getPendingList().get(i), reqtime,
 											resptime, reqtime, resptime, reqtime, resptime);
@@ -232,8 +234,8 @@ public class Synchronizer extends Agent {
 									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 									msg.addReceiver(userID.get(i));
 									try {
-										System.out.println("4  " + struct.getPendingcaseId().size() + " "
-												+ struct.getPendingList().size());
+										//System.out.println("4  " + struct.getPendingcaseId().size() + " "
+												//+ struct.getPendingList().size());
 										LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
 												struct.getPendingList().get(i), reqtime,
 												resptime, reqtime, resptime, reqtime, resptime);
