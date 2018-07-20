@@ -149,24 +149,26 @@ public class Synchronizer extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if (struct.getProccactif() > nbprocessActif) {
+				long nbpr = struct.getProccactif() - assigned.size();
+				//System.out.println(nbpr+"   "+struct.getProccactif());
+				Iterator<Long> iter = struct.getPendingList().iterator();
+				Iterator<String> iter1 = struct.getPendingcaseId().iterator();
+				while (iter.hasNext() && iter1.hasNext()) {
+					long in = iter.next();
+					String in1 = iter1.next();
+					if (exist(in, assigned)) {
+						iter.remove();
+						iter1.remove();
+					}
+				}
+
+				assigned = new ArrayList<Long>();
+				cases = new ArrayList<String>();
+				if (nbpr > nbprocessActif) {
 					System.out.println("Timestamp:  " + reqtime + " :Request retrieve To Bonita");
 					System.out.println("Timestamp:  " + resptime
 							+ " :Response retrieve from Bonita Received number of active tasks is  "
-							+ struct.getProccactif());
-					Iterator<Long> iter = struct.getPendingList().iterator();
-					Iterator<String> iter1 = struct.getPendingcaseId().iterator();
-					while (iter.hasNext() && iter1.hasNext()) {
-						long in = iter.next();
-						String in1 = iter1.next();
-						if (exist(in, assigned)) {
-							iter.remove();
-							iter1.remove();
-						}
-					}
-
-					assigned = new ArrayList<Long>();
-					cases = new ArrayList<String>();
+							+ struct.getProccactif());			
 					// send to the agents the tasks to be executed
 					if (struct.getProccactif() - nbprocessActif >= userID.size()) {
 						if (userID.size() <= struct.getPendingList().size()) {
