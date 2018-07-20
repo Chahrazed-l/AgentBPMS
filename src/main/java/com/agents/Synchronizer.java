@@ -127,14 +127,12 @@ public class Synchronizer extends Agent {
 				ACLMessage mgk = myAgent.receive(mt1);
 				Struct struct = new Struct(listofPendingTasks, listofPendingcase, nbproca);
 				try {
-					nbproc = userID.size()*2;
+					nbproc = userID.size() * 2;
 					Class<?>[] paramType = { int.class, int.class, String.class, long.class };
 					getNameMethod1 = conn1.getClass().getMethod("retreiveTask", paramType);
-					System.out.println("Request retrieve to Bonita is sent  "+new Timestamp(System.currentTimeMillis()));
 					reqtime = new Timestamp(System.currentTimeMillis());
 					struct = (Struct) getNameMethod1.invoke(conn1, nbpage, nbproc, token, userId);
 					resptime = new Timestamp(System.currentTimeMillis());
-					System.out.println("Response retrieve from Bonita Received number of active tasks is  "+struct.getProccactif()+ ": timestamp: "+new Timestamp(System.currentTimeMillis()));
 				} catch (NoSuchMethodException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -152,29 +150,37 @@ public class Synchronizer extends Agent {
 					e.printStackTrace();
 				}
 				if (struct.getProccactif() > nbprocessActif) {
+					System.out.println("Timestamp:  " + reqtime + " :Request retrieve To Bonita");
+					System.out.println("Timestamp:  " + resptime
+							+ " :Response retrieve from Bonita Received number of active tasks is  "
+							+ struct.getProccactif());
 					Iterator<Long> iter = struct.getPendingList().iterator();
 					Iterator<String> iter1 = struct.getPendingcaseId().iterator();
-				    while (iter.hasNext() && iter1.hasNext()) {
-				        long in = iter.next();
-				        String in1=iter1.next();
-				        if (exist(in, assigned)) {
-				            iter.remove();
-				            iter1.remove();
-				        }
-				    }
-					//System.out.println("1  " + struct.getPendingcaseId().size() + " " + struct.getPendingList().size());
+					while (iter.hasNext() && iter1.hasNext()) {
+						long in = iter.next();
+						String in1 = iter1.next();
+						if (exist(in, assigned)) {
+							iter.remove();
+							iter1.remove();
+						}
+					}
+
 					assigned = new ArrayList<Long>();
 					cases = new ArrayList<String>();
 					// send to the agents the tasks to be executed
 					if (struct.getProccactif() - nbprocessActif >= userID.size()) {
 						if (userID.size() <= struct.getPendingList().size()) {
+							System.out.println("Timestamp:  " + new Timestamp(System.currentTimeMillis())
+									+ " :The size of the case list " + struct.getPendingcaseId().size()
+									+ " and  the size of task list " + struct.getPendingList().size()
+									+ " --> Number of Active BPM Agents is " + userID.size());
 							for (int i = 0; i < userID.size(); i++) {
 								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 								msg.addReceiver(userID.get(i));
 								try {
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
-											struct.getPendingList().get(i), reqtime,
-											resptime, reqtime, resptime, reqtime, resptime);
+											struct.getPendingList().get(i), reqtime, resptime, reqtime, resptime,
+											reqtime, resptime);
 									msg.setContentObject(obj);
 									assigned.add(struct.getPendingList().get(i));
 									cases.add(struct.getPendingcaseId().get(i));
@@ -185,19 +191,21 @@ public class Synchronizer extends Agent {
 								send(msg);
 							}
 						} else {
+							System.out.println("Timestamp:  " + new Timestamp(System.currentTimeMillis())
+									+ " :The size of the case list " + struct.getPendingcaseId().size()
+									+ " and  the size of task list " + struct.getPendingList().size()
+									+ " --> Number of Active BPM Agents is " + struct.getPendingList().size());
 							for (int i = 0; i < struct.getPendingList().size(); i++) {
 								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 								msg.addReceiver(userID.get(i));
 								try {
-									//System.out.println("2  " + struct.getPendingcaseId().size() + " "
-											//+ struct.getPendingList().size());
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
-											struct.getPendingList().get(i), reqtime,
-											resptime, reqtime, resptime, reqtime, resptime);
+											struct.getPendingList().get(i), reqtime, resptime, reqtime, resptime,
+											reqtime, resptime);
 									msg.setContentObject(obj);
 									assigned.add(struct.getPendingList().get(i));
 									cases.add(struct.getPendingcaseId().get(i));
-									
+
 								} catch (IOException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -208,20 +216,23 @@ public class Synchronizer extends Agent {
 					} else {
 						if (struct.getProccactif() - nbprocessActif >= struct.getPendingList().size()
 								&& struct.getPendingList().size() > 0) {
-							// System.out.println("the size of pending is "+struct.getPendingList().size());
+							System.out.println("Timestamp:  " + new Timestamp(System.currentTimeMillis())
+									+ " :The size of the case list " + struct.getPendingcaseId().size()
+									+ " and  the size of task list " + struct.getPendingList().size()
+									+ " --> Number of Active BPM Agents is " + struct.getPendingList().size());
+
 							for (int i = 0; i < struct.getPendingList().size(); i++) {
 								ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 								msg.addReceiver(userID.get(i));
 								try {
-									//System.out.println("3  " + struct.getPendingcaseId().size() + " "
-											//+ struct.getPendingList().size());
+
 									LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
-											struct.getPendingList().get(i), reqtime,
-											resptime, reqtime, resptime, reqtime, resptime);
+											struct.getPendingList().get(i), reqtime, resptime, reqtime, resptime,
+											reqtime, resptime);
 									msg.setContentObject(obj);
 									assigned.add(struct.getPendingList().get(i));
 									cases.add(struct.getPendingcaseId().get(i));
-									
+
 								} catch (IOException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -229,16 +240,19 @@ public class Synchronizer extends Agent {
 								send(msg);
 							}
 						} else {
-							if (struct.getPendingList().size() > 0 && struct.getProccactif() - nbprocessActif>0) {
+							if (struct.getPendingList().size() > 0 && struct.getProccactif() - nbprocessActif > 0) {
+								System.out.println("Timestamp:  " + new Timestamp(System.currentTimeMillis())
+										+ " :The size of the case list " + struct.getPendingcaseId().size()
+										+ " and  the size of task list " + struct.getPendingList().size()
+										+ " --> Number of Active BPM Agents is  " + (struct.getProccactif() - nbprocessActif));
 								for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
 									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 									msg.addReceiver(userID.get(i));
 									try {
-										//System.out.println("4  " + struct.getPendingcaseId().size() + " "
-												//+ struct.getPendingList().size());
+
 										LogObject obj = new LogObject(struct.getPendingcaseId().get(i),
-												struct.getPendingList().get(i), reqtime,
-												resptime, reqtime, resptime, reqtime, resptime);
+												struct.getPendingList().get(i), reqtime, resptime, reqtime, resptime,
+												reqtime, resptime);
 										msg.setContentObject(obj);
 										assigned.add(struct.getPendingList().get(i));
 										cases.add(struct.getPendingcaseId().get(i));
@@ -303,20 +317,20 @@ public class Synchronizer extends Agent {
 			return step == -1;
 		}
 	}
-	//Function exist
-	
-	public boolean exist(long  it, ArrayList<Long> list) {
-		boolean found=false;
-		int i=0;
-		while (i<list.size() && !found) {
-			if(list.get(i)==it) {
-				found=true;
+	// Function exist
+
+	public boolean exist(long it, ArrayList<Long> list) {
+		boolean found = false;
+		int i = 0;
+		while (i < list.size() && !found) {
+			if (list.get(i) == it) {
+				found = true;
 			}
 			i++;
 		}
 		return found;
 	}
-	
+
 	private ArrayList<AID> usersId(String tenantName, String name) {
 		ArrayList<AID> useragents = new ArrayList<AID>();
 		DFAgentDescription template = new DFAgentDescription();

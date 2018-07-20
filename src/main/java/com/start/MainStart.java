@@ -2,8 +2,10 @@ package com.start;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -77,6 +79,8 @@ public class MainStart {
 	}
 
 	public static void main(String[] args) throws IOException {
+		System.setOut(new PrintStream(new FileOutputStream("output_Agent.txt")));
+		System.out.println("This is test output");
 		String bpms_name = args[0].toString();
 		uri = args[1].toString();
 		String filename = args[2].toString();
