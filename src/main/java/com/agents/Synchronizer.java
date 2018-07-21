@@ -161,16 +161,15 @@ public class Synchronizer extends Agent {
 						iter1.remove();
 					}
 				}
-
 				assigned = new ArrayList<Long>();
 				cases = new ArrayList<String>();
 				if (nbpr > nbprocessActif) {
 					System.out.println("Timestamp:  " + reqtime + " :Request retrieve To Bonita");
 					System.out.println("Timestamp:  " + resptime
-							+ " :Response retrieve from Bonita Received number of active tasks is  "
-							+ struct.getProccactif());			
+							+ " :Response retrieve from Bonita Received number of active tasks not assigned is  "
+							+ nbpr);			
 					// send to the agents the tasks to be executed
-					if (struct.getProccactif() - nbprocessActif >= userID.size()) {
+					if (nbpr - nbprocessActif >= userID.size()) {
 						if (userID.size() <= struct.getPendingList().size()) {
 							System.out.println("Timestamp:  " + new Timestamp(System.currentTimeMillis())
 									+ " :The size of the case list " + struct.getPendingcaseId().size()
@@ -216,7 +215,7 @@ public class Synchronizer extends Agent {
 							}
 						}
 					} else {
-						if (struct.getProccactif() - nbprocessActif >= struct.getPendingList().size()
+						if (nbpr - nbprocessActif >= struct.getPendingList().size()
 								&& struct.getPendingList().size() > 0) {
 							System.out.println("Timestamp:  " + new Timestamp(System.currentTimeMillis())
 									+ " :The size of the case list " + struct.getPendingcaseId().size()
@@ -242,12 +241,12 @@ public class Synchronizer extends Agent {
 								send(msg);
 							}
 						} else {
-							if (struct.getPendingList().size() > 0 && struct.getProccactif() - nbprocessActif > 0) {
+							if (struct.getPendingList().size() > 0 && nbpr - nbprocessActif > 0) {
 								System.out.println("Timestamp:  " + new Timestamp(System.currentTimeMillis())
 										+ " :The size of the case list " + struct.getPendingcaseId().size()
 										+ " and  the size of task list " + struct.getPendingList().size()
-										+ " --> Number of Active BPM Agents is  " + (struct.getProccactif() - nbprocessActif));
-								for (int i = 0; i < struct.getProccactif() - nbprocessActif; i++) {
+										+ " --> Number of Active BPM Agents is  " + (nbpr - nbprocessActif));
+								for (int i = 0; i < nbpr - nbprocessActif; i++) {
 									ACLMessage msg = new ACLMessage(ACLMessage.REQUEST_WHEN);
 									msg.addReceiver(userID.get(i));
 									try {
@@ -272,10 +271,24 @@ public class Synchronizer extends Agent {
 
 				else {
 					if (found) {
+						if(struct.getProccactif()==nbprocessActif) {
 						System.out.println("Threshold  " + nbprocessActif + " within the tenant " + tenantName
 								+ " is reached Stop the execution of tasks : Timestamp ---  "
 								+ new Timestamp(System.currentTimeMillis()));
 						found = false;
+						}
+						else if(struct.getProccactif()>nbprocessActif) {
+							System.out.println("Too much active Tasks  " + struct.getProccactif() + " within the tenant " + tenantName
+									+ "  : Timestamp ---  "
+									+ new Timestamp(System.currentTimeMillis()));
+							found = false;
+						}
+						else {
+							System.out.println("Too few active Tasks  " + struct.getProccactif() + " within the tenant " + tenantName
+									+ "  : Timestamp ---  "
+									+ new Timestamp(System.currentTimeMillis()));
+							found = false;
+						}
 					}
 				}
 				if (mgk != null) {
